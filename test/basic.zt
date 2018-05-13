@@ -1,0 +1,8 @@
+feature pa {
+  lb: p f m;
+  av: t s l n;
+  ve: k x ŋ;
+  gl: h;
+}
+
+$(C:1|pa=lb) -> $(C:1|pa=av) (_ e)
