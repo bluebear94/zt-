@@ -20,7 +20,7 @@ namespace sca {
   struct Feature {
     std::string featureName;
     std::vector<std::string> instanceNames;
-    [[nodiscard]] ErrorCode getFeatureInstanceByName(
+    [[nodiscard]] Error getFeatureInstanceByName(
       const std::string& name, size_t& id) const;
   };
   using PhonemesByFeature = std::vector<std::vector<std::string>>;
@@ -59,25 +59,26 @@ namespace sca {
   class SCA {
   public:
     SCA() {}
-    [[nodiscard]] ErrorCode insertFeature(
+    [[nodiscard]] Error insertFeature(
       Feature&& f, const PhonemesByFeature& phonemesByFeature);
-    [[nodiscard]] ErrorCode insertClass(
+    [[nodiscard]] Error insertClass(
       std::string&& name, const std::vector<std::string>& myPhonemes);
-    [[nodiscard]] ErrorCode getFeatureByName(
+    [[nodiscard]] Error getFeatureByName(
       const std::string& name, size_t& id, Feature*& feature);
-    [[nodiscard]] ErrorCode getClassByName(
+    [[nodiscard]] Error getClassByName(
       const std::string& name, size_t& id, CharClass*& cclass);
-    [[nodiscard]] ErrorCode getPhonemeByName(
+    [[nodiscard]] Error getPhonemeByName(
       const std::string& name, PhonemeSpec*& ps);
-    [[nodiscard]] ErrorCode getFeatureByName(
+    [[nodiscard]] Error getFeatureByName(
       const std::string& name, size_t& id, Feature const*& feature) const;
-    [[nodiscard]] ErrorCode getClassByName(
+    [[nodiscard]] Error getClassByName(
       const std::string& name, size_t& id, CharClass const*& cclass) const;
-    [[nodiscard]] ErrorCode getPhonemeByName(
+    [[nodiscard]] Error getPhonemeByName(
       const std::string& name, PhonemeSpec const*& ps) const;
     void insertSoundChange(SoundChange&& sc) {
       rules.push_back(std::move(sc));
     }
+    [[nodiscard]] Error verify();
   private:
     std::vector<CharClass> charClasses;
     std::vector<Feature> features;

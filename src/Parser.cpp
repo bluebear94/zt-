@@ -16,7 +16,7 @@ namespace sca {
     // we get a match
     std::string st(s);
     while (ei >= 1) {
-      ErrorCode res = sca.getPhonemeByName(st, ps);
+      Error res = sca.getPhonemeByName(st, ps);
       if (res == ErrorCode::ok) break;
       st.pop_back();
       --ei;
@@ -158,7 +158,7 @@ namespace sca {
     std::optional<std::string> fname = parseString();
     REQUIRE(fname)
     size_t id; Feature* feature;
-    ErrorCode res = sca->getFeatureByName(*fname, id, feature);
+    Error res = sca->getFeatureByName(*fname, id, feature);
     CHECK_ERROR_CODE(res);
     REQUIRE_OPERATOR(Operator::equals)
     std::optional<std::string> iname = parseString();
@@ -175,7 +175,7 @@ namespace sca {
     REQUIRE(cname)
     size_t id;
     CharClass* cclass;
-    ErrorCode res = sca->getClassByName(*cname, id, cclass);
+    Error res = sca->getClassByName(*cname, id, cclass);
     CHECK_ERROR_CODE(res)
     CharMatcher matcher;
     matcher.charClass = id;
@@ -289,7 +289,7 @@ namespace sca {
     sc.rule = std::move(*r);
     return std::move(sc);
   }
-  std::optional<ErrorCode> Parser::parseStatement(size_t& which) {
+  std::optional<Error> Parser::parseStatement(size_t& which) {
     // In case of failure, return the longest match
     size_t oldIndex = index;
     auto sc = parseSoundChange();
@@ -301,7 +301,7 @@ namespace sca {
     index = oldIndex; // backtrack
     auto feature = parseFeature();
     if (feature) {
-      ErrorCode c = sca->insertFeature(
+      Error c = sca->insertFeature(
         std::move(feature->first), feature->second);
       return c;
     }
@@ -309,7 +309,7 @@ namespace sca {
     index = oldIndex; // backtrack
     auto charClass = parseCharClass();
     if (charClass) {
-      ErrorCode c = sca->insertClass(
+      Error c = sca->insertClass(
         std::move(charClass->first), charClass->second);
       return c;
     }

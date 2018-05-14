@@ -15,7 +15,7 @@ namespace sca {
   class Parser {
   public:
     Parser(Lexer* l, SCA* sca) : l(l), sca(sca) {}
-    std::optional<ErrorCode> parseStatement(size_t& which);
+    std::optional<Error> parseStatement(size_t& which);
     bool parse();
   private:
     std::vector<Token> tokens;

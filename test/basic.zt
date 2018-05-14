@@ -8,4 +8,11 @@ feature pa {
   gl: h;
 }
 
+feature ma {
+  pl: p t k;
+  fr: f s x h;
+  la: l;
+  na: m n ŋ;
+}
+
 $(C:1|pa=lb) -> $(C:1|pa=av) (_ e);
