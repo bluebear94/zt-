@@ -16,9 +16,9 @@ sound_change := rule
 
 rule := simple_rule | compound_rule
 
-simple_rule := string '->' string ['(' env_string ')']
+simple_rule := string '->' string ['(' env_string ')'] ';'
 
-compound_rule := '{' (simple_rule ';')* '}'
+compound_rule := '{' simple_rule* '}'
 
 string := char*
 
@@ -104,7 +104,6 @@ namespace sca {
       case ';': RETURN_OP(Operator::semicolon);
       case '|': RETURN_OP(Operator::pipe);
       case '_': RETURN_OP(Operator::placeholder);
-      case '#': RETURN_OP(Operator::hash);
       case '$': {
         Cursor temp = cursor;
         int d = cursor.read();
@@ -140,7 +139,7 @@ namespace sca {
             } else break;
           }
           if (s == "feature") t.contents = Operator::kwFeature;
-          if (s == "class") t.contents = Operator::kwClass;
+          else if (s == "class") t.contents = Operator::kwClass;
           else t.contents = std::move(s);
           return t;
         } else if (isdigit(c)) {

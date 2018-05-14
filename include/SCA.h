@@ -58,6 +58,7 @@ namespace sca {
   };
   class SCA {
   public:
+    SCA() {}
     [[nodiscard]] ErrorCode insertFeature(
       Feature&& f, const PhonemesByFeature& phonemesByFeature);
     [[nodiscard]] ErrorCode insertClass(

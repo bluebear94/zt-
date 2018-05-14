@@ -23,7 +23,6 @@ namespace sca {
     semicolon,
     pipe,
     placeholder,
-    hash,
     kwFeature,
     kwClass,
   };

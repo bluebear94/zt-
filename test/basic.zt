@@ -8,4 +8,4 @@ feature pa {
   gl: h;
 }
 
-$(C:1|pa=lb) -> $(C:1|pa=av) (_ e)
+$(C:1|pa=lb) -> $(C:1|pa=av) (_ e);

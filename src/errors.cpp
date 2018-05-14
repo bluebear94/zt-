@@ -20,6 +20,7 @@ namespace sca {
     return "Unknown error";
   }
   void printError(ErrorCode ec) {
-    std::cerr << "SCA error: " << stringError(ec) << "\n";
+    std::cerr << "SCA error: " << stringError(ec) <<
+      " (#" << (int) ec << ")\n";
   }
 }

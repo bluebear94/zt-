@@ -41,7 +41,7 @@ namespace sca {
     if (!res.second) return ErrorCode::classExists;
     for (const std::string& phoneme : myPhonemes) {
       PhonemeSpec& spec = phonemes[phoneme];
-      if (spec.charClass == -1) return ErrorCode::phonemeAlreadyHasClass;
+      if (spec.charClass != -1) return ErrorCode::phonemeAlreadyHasClass;
     }
     charClasses.emplace_back();
     CharClass& newClass = charClasses.back();

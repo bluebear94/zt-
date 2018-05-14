@@ -15,7 +15,8 @@ namespace sca {
   class Parser {
   public:
     Parser(Lexer* l, SCA* sca) : l(l), sca(sca) {}
-    std::optional<ErrorCode> parseStatement();
+    std::optional<ErrorCode> parseStatement(size_t& which);
+    bool parse();
   private:
     std::vector<Token> tokens;
     size_t index = 0;
@@ -38,5 +39,6 @@ namespace sca {
     std::optional<SoundChange> parseSoundChange();
     bool parseChar(MString& m);
     std::optional<MString> parseString(bool allowEmpty);
+    void printLineColumn();
   };
 }
