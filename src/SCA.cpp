@@ -43,14 +43,14 @@ namespace sca {
   void SoundChange::apply(const SCA& sca, MString& st) const {
     if (eo == EvaluationOrder::ltr) {
       size_t i = 0;
-      while (i < st.size()) {
+      while (i <= st.size()) {
         auto res = rule->tryReplace(sca, st, i);
         if (res.has_value() && beh == Behaviour::once) break;
         if (beh == Behaviour::loopnsi) i += *res;
         else ++i;
       }
     } else {
-      size_t i = st.size() - 1;
+      size_t i = st.size();
       while (i >= 0) {
         auto res = rule->tryReplace(sca, st, i);
         if (res.has_value() && beh == Behaviour::once) break;
@@ -160,6 +160,7 @@ namespace sca {
     for (const MChar& mc : ms) {
       if (std::holds_alternative<std::string>(mc))
         s += std::get<std::string>(mc);
+      else s += "#";
     }
     return s;
   }

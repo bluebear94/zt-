@@ -6,7 +6,7 @@
 
 #include "SCA.h"
 #include "matching.h"
-#include <iostream>
+
 namespace sca {
   template<typename T>
   static void replaceSubrange(
@@ -27,7 +27,7 @@ namespace sca {
     } else if (size1 < size2) { // Right
       v1.resize(v1.size() + size2 - size1);
       std::copy_backward(
-        v1.begin() + oldSize - size2, v1.begin() + oldSize,
+        v1.begin() + e1, v1.begin() + oldSize,
         v1.end());
     }
     std::copy(b2, e2, v1.begin() + b1);
@@ -57,13 +57,19 @@ namespace sca {
     auto ll = lambda.rend();
     auto cmp = std::reverse_iterator(start);
     for (auto it = lr; it != ll; ++it) {
-      if (cmp == str.rend()) return std::nullopt;
+      if (cmp == str.rend()) {
+        if (std::holds_alternative<Space>(*it)) break;
+        return std::nullopt;
+      }
       if (!charsMatch(sca, *it, *cmp, mc)) return std::nullopt;
       ++cmp;
     }
     auto cmp2 = end;
     for (const MChar& rc : rho) {
-      if (cmp2 == str.end()) return std::nullopt;
+      if (cmp2 == str.end()) {
+        if (std::holds_alternative<Space>(rc)) break;
+        return std::nullopt;
+      }
       if (!charsMatch(sca, rc, *cmp2, mc)) return std::nullopt;
       ++cmp2;
     }
