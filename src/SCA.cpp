@@ -56,6 +56,9 @@ namespace sca {
       while (true) {
         auto res = rule->tryReplace(sca, st, i);
         if (res.has_value() && beh == Behaviour::once) break;
+        // XXX this assumes that all matches of a given rule
+        // are of the same length. This is true right now,
+        // but might not be once alternations are supported.
         size_t amt = (beh == Behaviour::loopnsi) ? *res : 1;
         if (i < amt) break; // this would carry it below zero
         i -= amt;

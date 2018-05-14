@@ -108,12 +108,12 @@ feature vlat {
 # L-recession for nouns
 
 ʔ -> : n;
-$(C:1|ma=ap)l -> $(C:1) : n;
-$(C:1|ma=na)l -> ŋ : n;
-r l -> r : n;
-$(C:1|pa=lb)l -> $(C:1|sart=vela) : n;
-$(C:1|pa=ve)l -> $(C:1) : n;
-$(C:1|ma=lf)l -> $(C:1) : n;
-$(C:1|whistled=y)l -> $(C:1|ma=lf,whistled=n) : n;
-$(C:1|ma=af)l -> $(C:1) : n;
-$(C:1)l -> $(C:1|sart=phar) : n;
+$(C:1|ma=ap)l -> $(C:1) / loopnsi : n;
+$(C:1|ma=na)l -> ŋ / loopnsi : n;
+r l -> r / loopnsi : n;
+$(C:1|pa=lb)l -> $(C:1|sart=vela) / loopnsi : n;
+$(C:1|pa=ve)l -> $(C:1) / loopnsi : n;
+$(C:1|ma=lf)l -> $(C:1) / loopnsi : n;
+$(C:1|whistled=y)l -> $(C:1|ma=lf,whistled=n) / loopnsi : n;
+$(C:1|ma=af)l -> $(C:1) / loopnsi : n;
+$(C:1)l -> $(C:1|sart=phar) / loopnsi : n;

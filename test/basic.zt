@@ -30,5 +30,5 @@ e -> (k _ t);
 # $(C:1|pa=lb) -> $(C:2|pa=av);
 
 # Try to make a velar lateral
-# Oh no, it crashes...
+# This doesn't crash but you'll be warned.
 $(C:1|pa=ve) -> $(C:1|ma=la) (_ ~);
