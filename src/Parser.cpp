@@ -190,7 +190,7 @@ namespace sca {
     }
     return matcher;
   }
-  bool Parser::parseChar(bool allowSpace, MString& m) {
+  bool Parser::parseChar(MString& m) {
     // char := phonemes | char_matcher
     // (or possibly space ['#'])
     size_t oldIndex = index;
@@ -204,26 +204,45 @@ namespace sca {
     std::optional<CharMatcher> matcher = parseMatcher();
     if (matcher) {
       m.push_back(std::move(*matcher));
-    }
-    if (allowSpace) {
-      if (!parseOperator(Operator::hash)) return false;
-      m.push_back(Space());
+      return true;
     }
     return false;
   }
-  std::optional<MString> Parser::parseString(bool allowSpace) {
+  std::optional<MString> Parser::parseString(bool allowEmpty) {
     MString m;
     bool atLeastOne = false;
     while (true) {
       size_t oldIndex = index;
-      bool s = parseChar(allowSpace, m);
+      bool s = parseChar(m);
       if (!s) {
         index = oldIndex;
-        if (atLeastOne) break;
+        if (atLeastOne || allowEmpty) break;
         return std::nullopt;
       }
     }
     return std::move(m);
+  }
+  std::optional<SimpleRule> Parser::parseSimpleRule() {
+    // sound_change := string '->' string ['(' env_string ')']
+    std::optional<MString> alpha = parseString(false);
+    REQUIRE(alpha)
+    REQUIRE_OPERATOR(Operator::arrow)
+    std::optional<MString> omega = parseString(false);
+    REQUIRE(omega)
+    SimpleRule r;
+    r.alpha = std::move(*alpha);
+    r.omega = std::move(*omega);
+    if (peekToken().isOperator(Operator::lb)) {
+      getToken();
+      std::optional<MString> lambda = parseString(true);
+      REQUIRE(lambda)
+      REQUIRE_OPERATOR(Operator::hash)
+      std::optional<MString> rho = parseString(true);
+      REQUIRE(rho)
+      r.lambda = std::move(*lambda);
+      r.rho = std::move(*rho);
+    }
+    return std::move(r);
   }
   std::optional<ErrorCode> Parser::parseStatement() {
     size_t oldIndex = index;

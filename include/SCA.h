@@ -38,8 +38,12 @@ namespace sca {
     std::vector<Constraint> constraints;
   };
   struct Space {};
-  using MChar = std::variant<std::string, CharMatcher, Space>;
+  using MChar = std::variant<std::string, CharMatcher>;
   using MString = std::vector<MChar>;
+  struct SimpleRule {
+    MString alpha, omega;
+    MString lambda, rho;
+  };
   class SCA {
   public:
     [[nodiscard]] ErrorCode insertFeature(
