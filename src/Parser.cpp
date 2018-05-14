@@ -275,29 +275,49 @@ namespace sca {
     REQUIRE(r)
     SoundChange sc;
     sc.rule = std::move(*r);
-    const Token& t = getToken();
-    if (t.isOperator(Operator::semicolon)) return std::move(sc);
-    if (!t.isOperator(Operator::slash)) return std::nullopt;
-    bool atLeastOne = false;
-    while (true) {
-      const Token& t = getToken();
-      if (t.isOperator(Operator::semicolon)) {
-        if (atLeastOne) return std::move(sc);
-        return std::nullopt;
+    const Token* t = &peekToken();
+    if (t->isOperator(Operator::slash)) {
+      getToken();
+      bool atLeastOne = false;
+      while (true) {
+        const Token& t = peekToken();
+        if (!t.is<std::string>()) {
+          if (!atLeastOne) return std::nullopt;
+          break;
+        }
+        getToken();
+        const std::string& s = t.as<std::string>();
+        if (s == "ltr") sc.eo = EvaluationOrder::ltr;
+        else if (s == "rtl") sc.eo = EvaluationOrder::rtl;
+        else if (s == "once") sc.beh = Behaviour::once;
+        else if (s == "loopnsi") sc.beh = Behaviour::loopnsi;
+        else if (s == "loopsi") sc.beh = Behaviour::loopsi;
+        else {
+          std::cerr << s << " is not a valid option\n";
+          return std::nullopt;
+        }
+        atLeastOne = true;
       }
-      if (!t.is<std::string>()) return std::nullopt;
-      const std::string& s = t.as<std::string>();
-      if (s == "ltr") sc.eo = EvaluationOrder::ltr;
-      else if (s == "rtl") sc.eo = EvaluationOrder::rtl;
-      else if (s == "once") sc.beh = Behaviour::once;
-      else if (s == "loopnsi") sc.beh = Behaviour::loopnsi;
-      else if (s == "loopsi") sc.beh = Behaviour::loopsi;
-      else {
-        std::cerr << s << " is not a valid option\n";
-        return std::nullopt;
-      }
-      atLeastOne = true;
+      t = &peekToken();
     }
+    if (t->isOperator(Operator::colon)) {
+      getToken();
+      bool atLeastOne = false;
+      while (true) {
+        const Token& t = peekToken();
+        if (!t.is<std::string>()) {
+          if (!atLeastOne) return std::nullopt;
+          break;
+        }
+        getToken();
+        const std::string& s = t.as<std::string>();
+        sc.poses.insert(s);
+        atLeastOne = true;
+      }
+      t = &peekToken();
+    }
+    REQUIRE_OPERATOR(Operator::semicolon)
+    return std::move(sc);
   }
   std::optional<Error> Parser::parseStatement(size_t& which) {
     // In case of failure, return the longest match

@@ -12,7 +12,7 @@ comments start with '#'
 
 statement := sound_change | feature_def | class_def
 
-sound_change := rule ['/' option+] ';'
+sound_change := rule ['/' option+] [: pos+] ';'
 
 rule := simple_rule | compound_rule
 

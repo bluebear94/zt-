@@ -40,7 +40,9 @@ namespace sca {
     id = it - instanceNames.begin();
     return ErrorCode::ok;
   }
-  void SoundChange::apply(const SCA& sca, MString& st) const {
+  void SoundChange::apply(
+      const SCA& sca, MString& st, const std::string& pos) const {
+    if (!poses.empty() && poses.count(pos) == 0) return;
     if (eo == EvaluationOrder::ltr) {
       size_t i = 0;
       while (i <= st.size()) {
@@ -152,11 +154,12 @@ namespace sca {
       phonemesReverse.insert(std::pair(p.second, p.first));
     }
   }
-  std::string SCA::apply(const std::string_view& st) const {
+  std::string SCA::apply(
+      const std::string_view& st, const std::string& pos) const {
     MString ms;
     splitIntoPhonemes(*this, st, ms);
     for (const SoundChange& r : rules)
-      r.apply(*this, ms);
+      r.apply(*this, ms, pos);
     std::string s;
     for (const MChar& mc : ms) {
       if (mc.is<std::string>())

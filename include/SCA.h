@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <variant>
 #include <vector>
 
@@ -49,7 +50,8 @@ namespace sca {
     std::unique_ptr<Rule> rule;
     EvaluationOrder eo = EvaluationOrder::ltr;
     Behaviour beh = Behaviour::once;
-    void apply(const SCA& sca, MString& st) const;
+    std::unordered_set<std::string> poses;
+    void apply(const SCA& sca, MString& st, const std::string& pos) const;
   };
   class SCA {
   public:
@@ -79,7 +81,8 @@ namespace sca {
       return phonemesReverse.equal_range(ps);
     }
     void verify(std::vector<Error>& errors) const;
-    std::string apply(const std::string_view& st) const;
+    std::string apply(
+      const std::string_view& st, const std::string& pos) const;
   private:
     std::vector<CharClass> charClasses;
     std::vector<Feature> features;

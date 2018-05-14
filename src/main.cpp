@@ -38,8 +38,7 @@ int main(int argc, char** argv) {
       pos = line.substr(i + 1);
       line.resize(i);
     }
-    (void) pos; // ignore for now
-    std::cout << mysca.apply(line) << "\n";
+    std::cout << mysca.apply(line, pos) << "\n";
   }
   return 0;
 }

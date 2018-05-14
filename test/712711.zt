@@ -1,0 +1,119 @@
+# Middle Rymakonian to Modern Rymakonian.
+
+class C =
+  # in 7_1
+  m n ɲ ŋ
+  p b t d c ɟ k ɡ ʔ
+  f v θ ð s z ʃ ʒ x ɣ
+  f‿x v‿ɣ θ‿x ð‿ɣ f‿ʃ v‿ʒ
+  s͎ z͎
+  t‿s t‿ʃ
+  ɬ ɮ
+  ɹ j w
+  l ɾ
+  # introduced by 7_7_1
+  pˠ bˠ tˤ dˤ cˤ ɟˤ
+  χ ʁ ħ ʕ
+  fˠ vˠ θˤ ðˤ sˤ zˤ ʃˤ ʒˤ
+  θ̼ ð̼ f‿ʃˠ v‿ʒˠ
+  ʃ͎ ʒ͎
+  ɫ r ʘ ǀ ǂ
+  # intermediates
+  m͋ n͋ ɲ͋ ŋ͋
+  ;
+class V = a e i o u ʉ̜ ʌ ɯ aˡ eˡ iˡ oˡ uˡ;
+
+feature pa {
+  lb: m p b f v pˠ bˠ fˠ vˠ m͋;
+  dt: θ ð θˤ ðˤ;
+  av: n t d s z s͎ z͎ t‿s ɬ ɮ ɹ l ɾ tˤ dˤ sˤ zˤ ɫ r ǀ n͋;
+  pa: ɲ c ɟ ʃ ʒ t‿ʃ j cˤ ɟˤ ʃˤ ʒˤ ʃ͎ ʒ͎ ǂ ɲ͋;
+  ve: ŋ k ɡ x ɣ w ŋ͋;
+  uv: χ ʁ;
+  ph: ħ ʕ;
+  lbve: f‿x v‿ɣ;
+  dtve: θ‿x ð‿ɣ;
+  lbpa: f‿ʃ v‿ʒ f‿ʃˠ v‿ʒˠ;
+  ll: θ̼ ð̼;
+}
+
+feature ma {
+  na: m n ɲ ŋ;
+  pl: p b t d c ɟ k ɡ ʔ pˠ bˠ tˤ dˤ cˤ ɟˤ;
+  fr: f v θ ð s z ʃ ʒ x ɣ s͎ z͎ ʃ͎ ʒ͎ χ ʁ ħ ʕ fˠ vˠ θˤ ðˤ sˤ zˤ ʃˤ ʒˤ f‿x v‿ɣ θ‿x ð‿ɣ f‿ʃ v‿ʒ θ̼ ð̼ f‿ʃˠ v‿ʒˠ;
+  af: t‿s t‿ʃ;
+  ap: ɹ j w;
+  la: l ɫ;
+  lf: ɬ ɮ;
+  tap: ɾ;
+  trill: r;
+  click: ʘ ǀ ǂ;
+  nareal: m͋ n͋ ɲ͋ ŋ͋;
+}
+
+feature voiced {
+  n:
+    p t c k ʔ
+    f θ s ʃ x
+    f‿x θ‿x f‿ʃ
+    s͎ ʃ͎
+    t‿s t‿ʃ
+    ɬ
+    pˠ tˤ cˤ
+    χ ħ
+    fˠ θˤ sˤ ʃˤ
+    θ̼ f‿ʃˠ
+    ʘ ǀ ǂ
+    ;
+  y:
+    m n ɲ ŋ
+    b d ɟ g
+    v ð z ʒ ɣ
+    v‿ɣ ð‿ɣ v‿ʒ
+    z͎ ʒ͎
+    ɮ
+    ɹ j w
+    l ɾ
+    bˠ dˤ ɟˤ
+    ʁ ʕ
+    vˠ ðˤ zˤ ʒˤ
+    ð̼ v‿ʒˠ
+    ɫ r
+    m͋ n͋ ɲ͋ ŋ͋
+    ;
+}
+
+feature whistled {
+  n: s;
+  y: s͎ z͎ ʃ͎ ʒ͎;
+}
+
+feature sart {
+  none: p;
+  vela: pˠ bˠ fˠ vˠ f‿ʃˠ v‿ʒˠ;
+  phar: tˤ dˤ cˤ ɟˤ θˤ ðˤ sˤ zˤ ʃˤ ʒˤ;
+}
+
+feature front {
+  f: i e iˡ eˡ;
+  c: a aˡ ʉ̜ ʉ̜ˡ;
+  b: o u ʌ ɯ oˡ uˡ;
+}
+
+feature vlat {
+  n: a e i o u ʉ̜ ʌ ɯ;
+  y: aˡ eˡ iˡ oˡ uˡ ʉ̜ˡ;
+}
+
+# L-recession for nouns
+
+ʔ -> : n;
+$(C:1|ma=ap)l -> $(C:1) : n;
+$(C:1|ma=na)l -> ŋ : n;
+r l -> r : n;
+$(C:1|pa=lb)l -> $(C:1|sart=vela) : n;
+$(C:1|pa=ve)l -> $(C:1) : n;
+$(C:1|ma=lf)l -> $(C:1) : n;
+$(C:1|whistled=y)l -> $(C:1|ma=lf,whistled=n) : n;
+$(C:1|ma=af)l -> $(C:1) : n;
+$(C:1)l -> $(C:1|sart=phar) : n;
