@@ -29,22 +29,22 @@ namespace sca {
   struct Feature {
     std::string featureName;
     std::vector<std::string> instanceNames;
+    bool isCore;
     [[nodiscard]] Error getFeatureInstanceByName(
       const std::string& name, size_t& id) const;
   };
   using PhonemesByFeature = std::vector<std::vector<std::string>>;
-  struct PSHash {
-    size_t operator()(const PhonemeSpec& ps) const {
-      size_t x = std::hash<size_t>()(ps.charClass);
-      constexpr size_t bits = CHAR_BIT * sizeof(size_t);
-      int rot = 0;
-      for (size_t fv : ps.featureValues) {
-        // use raw to avoid issues on 0
-        x ^= (fv << rot) | (fv >> (bits - rot));
-        rot = (rot + 1) % bits;
-      }
-      return x;
+  bool arePhonemeSpecsEqual(
+    const SCA& sca, const PhonemeSpec& a, const PhonemeSpec& b);
+  struct PSEqual {
+    size_t operator()(const PhonemeSpec& a, const PhonemeSpec& b) const {
+      return arePhonemeSpecsEqual(*sca, a, b);
     }
+    const SCA* sca;
+  };
+  struct PSHash {
+    size_t operator()(const PhonemeSpec& ps) const;
+    const SCA* sca;
   };
   struct SoundChange {
     std::unique_ptr<Rule> rule;
@@ -55,7 +55,7 @@ namespace sca {
   };
   class SCA {
   public:
-    SCA() {}
+    SCA() : phonemesReverse(16, PSHash{this}, PSEqual{this}) {}
     [[nodiscard]] Error insertFeature(
       Feature&& f, const PhonemesByFeature& phonemesByFeature);
     [[nodiscard]] Error insertClass(
@@ -73,6 +73,7 @@ namespace sca {
     [[nodiscard]] Error getPhonemeByName(
       const std::string& name, PhonemeSpec const*& ps) const;
     const CharClass& getClassByID(size_t id) const { return charClasses[id]; }
+    const Feature& getFeatureByID(size_t id) const { return features[id]; }
     void insertSoundChange(SoundChange&& sc) {
       rules.push_back(std::move(sc));
     }
@@ -91,7 +92,7 @@ namespace sca {
     std::unordered_map<std::string, PhonemeSpec> phonemes;
     std::vector<SoundChange> rules;
     std::unordered_multimap<
-      PhonemeSpec, std::string, PSHash> phonemesReverse;
+      PhonemeSpec, std::string, PSHash, PSEqual> phonemesReverse;
   };
   void splitIntoPhonemes(
     const SCA& sca, const std::string_view s, MString& phonemes);

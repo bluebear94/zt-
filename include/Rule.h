@@ -21,14 +21,6 @@ namespace sca {
       featureValues[f] = i;
     }
     bool hasClass(size_t cc) const { return charClass == cc; }
-    bool operator==(const PhonemeSpec& other) const {
-      if (charClass != other.charClass) return false;
-      size_t nf = std::max(featureValues.size(), other.featureValues.size());
-      for (size_t i = 0; i < nf; ++i) {
-        if (getFeatureValue(i) != other.getFeatureValue(i)) return false;
-      }
-      return true;
-    }
   };
   struct CharMatcher {
     struct Constraint {

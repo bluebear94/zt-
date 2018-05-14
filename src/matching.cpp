@@ -38,7 +38,8 @@ namespace sca {
       } else if constexpr (std::is_same_v<T, std::string>) {
         return fi.isT(arg);
       } else if constexpr (std::is_same_v<T, PhonemeSpec>) {
-        return fi.isT(arg);
+        return fi.is<PhonemeSpec>() &&
+          arePhonemeSpecsEqual(sca, fi.as<PhonemeSpec>(), arg);
       } else if constexpr (std::is_same_v<T, CharMatcher>) {
         const PhonemeSpec* ps;
         bool owned;

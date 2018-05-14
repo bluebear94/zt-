@@ -34,7 +34,7 @@ env_string := env_char*
 
 env_char := char | '~'
 
-feature_def := 'feature' feature_name '{' feature_body* '}'
+feature_def := 'feature' feature_name ['*'] '{' feature_body* '}'
 
 feature_body := feature_instance ':' phoneme+ ';'
 
@@ -106,6 +106,7 @@ namespace sca {
       case '_': RETURN_OP(Operator::placeholder);
       case '~': RETURN_OP(Operator::boundary);
       case '/': RETURN_OP(Operator::slash);
+      case '*': RETURN_OP(Operator::star);
       case '$': {
         Cursor temp = cursor;
         int d = cursor.read();

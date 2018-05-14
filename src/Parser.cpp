@@ -52,14 +52,19 @@ namespace sca {
   std::optional<std::pair<Feature, PhonemesByFeature>>
   Parser::parseFeature() {
     /*
-    feature_def := 'feature' feature_name '{' feature_body* '}'
+    feature_def := 'feature' feature_name ['*'] '{' feature_body* '}'
     feature_body := feature_instance ':' phoneme+ ';'
     */
+    Feature f;
     REQUIRE_OPERATOR(Operator::kwFeature)
     std::optional<std::string> name = parseString();
     REQUIRE(name)
+    const Token& star = peekToken();
+    if (star.isOperator(Operator::star)) {
+      f.isCore = false;
+      getToken();
+    } else f.isCore = true;
     REQUIRE_OPERATOR(Operator::lcb)
-    Feature f;
     f.featureName = std::move(*name);
     PhonemesByFeature pbf;
     while (true) {

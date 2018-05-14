@@ -25,6 +25,7 @@ namespace sca {
     placeholder,
     boundary,
     slash,
+    star,
     kwFeature,
     kwClass,
   };
