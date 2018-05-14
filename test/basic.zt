@@ -15,7 +15,9 @@ feature ma {
   na: m n ŋ;
 }
 
-$(C:1|pa=lb) -> $(C:1|pa=av) (_ e);
+# Try replacing the thing after the slash with any of the following:
+# ltr rtl once loopnsi loopsi
+$(C:1|pa=lb) -> $(C:1|pa=av) (_ e) / loopsi;
 s -> ss;
 a -> o (_ ~);
 pp -> p;

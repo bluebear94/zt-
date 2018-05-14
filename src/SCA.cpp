@@ -51,11 +51,12 @@ namespace sca {
       }
     } else {
       size_t i = st.size();
-      while (i >= 0) {
+      while (true) {
         auto res = rule->tryReplace(sca, st, i);
         if (res.has_value() && beh == Behaviour::once) break;
-        if (beh == Behaviour::loopnsi) i -= *res;
-        else --i;
+        size_t amt = (beh == Behaviour::loopnsi) ? *res : 1;
+        if (i < amt) break; // this would carry it below zero
+        i -= amt;
       }
     }
   }
@@ -158,10 +159,10 @@ namespace sca {
       r.apply(*this, ms);
     std::string s;
     for (const MChar& mc : ms) {
-      if (std::holds_alternative<std::string>(mc))
-        s += std::get<std::string>(mc);
-      else if (std::holds_alternative<PhonemeSpec>(mc)) {
-        const auto& spec = std::get<PhonemeSpec>(mc);
+      if (mc.is<std::string>())
+        s += mc.as<std::string>();
+      else if (mc.is<PhonemeSpec>()) {
+        const auto& spec = mc.as<PhonemeSpec>();
         s += "[phoneme/";
         if (spec.charClass == -1) s += '*';
         else s += charClasses[spec.charClass].name;

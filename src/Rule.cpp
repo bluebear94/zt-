@@ -59,7 +59,7 @@ namespace sca {
     auto cmp = std::reverse_iterator(start);
     for (auto it = lr; it != ll; ++it) {
       if (cmp == str.rend()) {
-        if (std::holds_alternative<Space>(*it)) break;
+        if (it->is<Space>()) break;
         return std::nullopt;
       }
       if (!charsMatch(sca, *it, *cmp, mc)) return std::nullopt;
@@ -68,7 +68,7 @@ namespace sca {
     auto cmp2 = end;
     for (const MChar& rc : rho) {
       if (cmp2 == str.end()) {
-        if (std::holds_alternative<Space>(rc)) break;
+        if (rc.is<Space>()) break;
         return std::nullopt;
       }
       if (!charsMatch(sca, rc, *cmp2, mc)) return std::nullopt;
@@ -93,8 +93,8 @@ namespace sca {
     defined;
     auto checkString = [&](const MString& st, bool write) {
       for (const MChar& c : st) {
-        if (std::holds_alternative<CharMatcher>(c)) {
-          const CharMatcher& m = std::get<CharMatcher>(c);
+        if (c.is<CharMatcher>()) {
+          const CharMatcher& m = c.as<CharMatcher>();
           bool unlabelled = m.index == 0;
           if (unlabelled ? hasLabelledMatchers : hasUnlabelledMatchers)
             errors.push_back(ErrorCode::mixedMatchers);
@@ -117,13 +117,13 @@ namespace sca {
     checkString(lambda, true);
     checkString(omega, false);
     for (size_t i = 1; i < lambda.size(); ++i) {
-      if (std::holds_alternative<Space>(lambda[i])) {
+      if (lambda[i].is<Space>()) {
         errors.push_back(ErrorCode::spacesWrong);
       }
     }
     if (rho.size() > 0) {
       for (size_t i = 0; i < rho.size() - 1; ++i) {
-        if (std::holds_alternative<Space>(rho[i])) {
+        if (rho[i].is<Space>()) {
           errors.push_back(ErrorCode::spacesWrong);
         }
       }

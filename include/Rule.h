@@ -43,7 +43,27 @@ namespace sca {
     std::vector<Constraint> constraints;
   };
   struct Space {};
-  using MChar = std::variant<std::string, CharMatcher, Space, PhonemeSpec>;
+  struct MChar {
+    MChar() {}
+    MChar(std::string&& s) : value(std::move(s)) {}
+    MChar(CharMatcher&& c) : value(std::move(c)) {}
+    MChar(Space s) : value(s) {}
+    MChar(PhonemeSpec&& ps) : value(std::move(ps)) {}
+    MChar(const std::string& s) : value(s) {}
+    MChar(const CharMatcher& c) : value(c) {}
+    MChar(const PhonemeSpec& ps) : value(ps) {}
+    std::variant<std::string, CharMatcher, Space, PhonemeSpec> value;
+    template<typename T>
+    bool is() const { return std::holds_alternative<T>(value); }
+    template<typename T>
+    const T& as() const { return std::get<T>(value); }
+    template<typename T>
+    T&& as() { return std::move(std::get<T>(value)); }
+    template<typename T>
+    bool isT(const T& s) const {
+      return is<T>() && as<T>() == s;
+    }
+  };
   using MString = std::vector<MChar>;
   class Rule {
   public:

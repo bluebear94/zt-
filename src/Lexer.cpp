@@ -12,13 +12,13 @@ comments start with '#'
 
 statement := sound_change | feature_def | class_def
 
-sound_change := rule
+sound_change := rule ['/' option+] ';'
 
 rule := simple_rule | compound_rule
 
-simple_rule := string '->' string ['(' env_string ')'] ';'
+simple_rule := string '->' string ['(' env_string ')']
 
-compound_rule := '{' simple_rule* '}'
+compound_rule := '{' (simple_rule ';'* '}'
 
 string := char*
 
@@ -32,7 +32,7 @@ class_constraint := feature_name '=' feature_instance
 
 env_string := env_char*
 
-env_char := char | '#'
+env_char := char | '~'
 
 feature_def := 'feature' feature_name '{' feature_body* '}'
 
@@ -105,6 +105,7 @@ namespace sca {
       case '|': RETURN_OP(Operator::pipe);
       case '_': RETURN_OP(Operator::placeholder);
       case '~': RETURN_OP(Operator::boundary);
+      case '/': RETURN_OP(Operator::slash);
       case '$': {
         Cursor temp = cursor;
         int d = cursor.read();

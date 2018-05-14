@@ -24,6 +24,7 @@ namespace sca {
     pipe,
     placeholder,
     boundary,
+    slash,
     kwFeature,
     kwClass,
   };

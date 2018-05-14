@@ -24,32 +24,31 @@ namespace sca {
       } else {
         return c;
       }
-    }, c);
+    }, c.value);
   }
   bool charsMatch(
       const SCA& sca, const MChar& fr2, const MChar& fi2, MatchCapture& mc) {
-    MChar fr = decay(sca, fr2);
-    MChar fi = decay(sca, fi2);
+    bool llmatch = fr2.is<std::string>() && fi2.is<std::string>();
+    MChar fr = llmatch ? fr2 : decay(sca, fr2);
+    MChar fi = llmatch ? fi2 : decay(sca, fi2);
     return std::visit([&](const auto& arg) {
       using T = std::decay_t<decltype(arg)>;
       if constexpr (std::is_same_v<T, Space>) {
-        return std::holds_alternative<Space>(fi);
+        return fi.is<Space>();
       } else if constexpr (std::is_same_v<T, std::string>) {
-        return std::holds_alternative<std::string>(fi) &&
-          std::get<std::string>(fi) == arg;
+        return fi.isT(arg);
       } else if constexpr (std::is_same_v<T, PhonemeSpec>) {
-        return std::holds_alternative<PhonemeSpec>(fi) &&
-          std::get<PhonemeSpec>(fi) == arg;
+        return fi.isT(arg);
       } else if constexpr (std::is_same_v<T, CharMatcher>) {
         const PhonemeSpec* ps;
         bool owned;
-        if (std::holds_alternative<std::string>(fi)) {
-          const std::string ph = std::get<std::string>(fi);
+        if (fi.is<std::string>()) {
+          const std::string ph = fi.as<std::string>();
           Error err = sca.getPhonemeByName(ph, ps);
           if (err != ErrorCode::ok) ps = &defaultPS;
           owned = false;
-        } else if (std::holds_alternative<PhonemeSpec>(fi)) {
-          ps = new PhonemeSpec(std::move(std::get<PhonemeSpec>(fi)));
+        } else if (fi.is<PhonemeSpec>()) {
+          ps = new PhonemeSpec(std::move(fi.as<PhonemeSpec>()));
           owned = true;
         }
         // Get properties of fi
@@ -84,7 +83,7 @@ namespace sca {
         }
         return true;
       }
-    }, fr);
+    }, fr.value);
   }
   MChar applyOmega(const SCA& sca, MChar&& old, const MatchCapture& mc) {
     return std::visit([&](auto&& arg) -> MChar {
@@ -105,6 +104,6 @@ namespace sca {
       } else {
         return std::move(arg);
       }
-    }, old);
+    }, old.value);
   }
 }
