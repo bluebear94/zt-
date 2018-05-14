@@ -4,6 +4,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include "errors.h"
@@ -16,7 +17,7 @@ namespace sca {
     std::string featureName;
     std::vector<std::string> instanceNames;
     [[nodiscard]] ErrorCode getFeatureInstanceByName(
-      const std::string& name, size_t& id);
+      const std::string& name, size_t& id) const;
   };
   using PhonemesByFeature = std::vector<std::vector<std::string>>;
   struct PhonemeSpec {
@@ -36,6 +37,9 @@ namespace sca {
     size_t index;
     std::vector<Constraint> constraints;
   };
+  struct Space {};
+  using MChar = std::variant<std::string, CharMatcher, Space>;
+  using MString = std::vector<MChar>;
   class SCA {
   public:
     [[nodiscard]] ErrorCode insertFeature(
@@ -46,6 +50,14 @@ namespace sca {
       const std::string& name, size_t& id, Feature*& feature);
     [[nodiscard]] ErrorCode getClassByName(
       const std::string& name, size_t& id, CharClass*& cclass);
+    [[nodiscard]] ErrorCode getPhonemeByName(
+      const std::string& name, PhonemeSpec*& ps);
+    [[nodiscard]] ErrorCode getFeatureByName(
+      const std::string& name, size_t& id, Feature const*& feature) const;
+    [[nodiscard]] ErrorCode getClassByName(
+      const std::string& name, size_t& id, CharClass const*& cclass) const;
+    [[nodiscard]] ErrorCode getPhonemeByName(
+      const std::string& name, PhonemeSpec const*& ps) const;
   private:
     std::vector<CharClass> charClasses;
     std::vector<Feature> features;

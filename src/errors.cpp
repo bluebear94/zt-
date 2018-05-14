@@ -11,6 +11,7 @@ namespace sca {
     "No such character class",
     "Character class already exists",
     "Phoneme already has character class",
+    "No such phoneme",
   };
   const char* stringError(ErrorCode ec) {
     int n = (int) ec;

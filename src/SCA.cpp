@@ -5,7 +5,7 @@
 namespace sca {
   // I hope features with lots of instances aren't that common.
   ErrorCode Feature::getFeatureInstanceByName(
-      const std::string& name, size_t& id) {
+      const std::string& name, size_t& id) const {
     auto it = std::find(instanceNames.begin(), instanceNames.end(), name);
     if (it == instanceNames.end()) return ErrorCode::noSuchFeatureInstance;
     id = it - instanceNames.begin();
@@ -33,22 +33,6 @@ namespace sca {
     }
     return ErrorCode::ok;
   }
-  ErrorCode SCA::getFeatureByName(
-      const std::string& name, size_t& id, Feature*& feature) {
-    auto it = featuresByName.find(name);
-    if (it == featuresByName.end()) return ErrorCode::noSuchFeature;
-    id = it->second;
-    feature = &(features[it->second]);
-    return ErrorCode::ok;
-  }
-  ErrorCode SCA::getClassByName(
-      const std::string& name, size_t& id, CharClass*& cclass) {
-    auto it = classesByName.find(name);
-    if (it == classesByName.end()) return ErrorCode::noSuchClass;
-    id = it->second;
-    cclass = &(charClasses[it->second]);
-    return ErrorCode::ok;
-  }
   ErrorCode SCA::insertClass(
       std::string&& name, const std::vector<std::string>& myPhonemes) {
     size_t oldClassCount = charClasses.size();
@@ -67,5 +51,40 @@ namespace sca {
       spec.charClass = oldClassCount;
     }
     return ErrorCode::ok;
+  }
+  ErrorCode SCA::getFeatureByName(
+      const std::string& name, size_t& id, Feature const*& feature) const {
+    auto it = featuresByName.find(name);
+    if (it == featuresByName.end()) return ErrorCode::noSuchFeature;
+    id = it->second;
+    feature = &(features[it->second]);
+    return ErrorCode::ok;
+  }
+  ErrorCode SCA::getClassByName(
+      const std::string& name, size_t& id, CharClass const*& cclass) const {
+    auto it = classesByName.find(name);
+    if (it == classesByName.end()) return ErrorCode::noSuchClass;
+    id = it->second;
+    cclass = &(charClasses[it->second]);
+    return ErrorCode::ok;
+  }
+  ErrorCode SCA::getPhonemeByName(
+      const std::string& name, PhonemeSpec const*& ps) const {
+    auto it = phonemes.find(name);
+    if (it == phonemes.end()) return ErrorCode::noSuchPhoneme;
+    ps = &(it->second);
+    return ErrorCode::ok;
+  }
+  ErrorCode SCA::getFeatureByName(
+      const std::string& name, size_t& id, Feature*& feature) {
+    return getFeatureByName(name, id, (const Feature*&) feature);
+  }
+  ErrorCode SCA::getClassByName(
+      const std::string& name, size_t& id, CharClass*& cclass) {
+    return getClassByName(name, id, (const CharClass*&) cclass);
+  }
+  ErrorCode SCA::getPhonemeByName(
+      const std::string& name, PhonemeSpec*& ps) {
+    return getPhonemeByName(name, (const PhonemeSpec*&) ps);
   }
 }

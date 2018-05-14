@@ -9,6 +9,7 @@ namespace sca {
     noSuchClass,
     classExists,
     phonemeAlreadyHasClass,
+    noSuchPhoneme,
   };
   void printError(ErrorCode ec);
   const char* stringError(ErrorCode ec);

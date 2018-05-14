@@ -1,10 +1,38 @@
 #include "Parser.h"
 
 #include <iostream>
+#include <string_view>
 
 #include "Lexer.h"
+#include "utf8.h"
 
 namespace sca {
+  static void splitIntoPhonemes(
+      const SCA& sca, const std::string_view s, MString& phonemes) {
+    size_t ei = s.length();
+    if (ei == 0) return;
+    const PhonemeSpec* ps = nullptr;
+    // Go from the whole string and chop off the last character until
+    // we get a match
+    std::string st(s);
+    while (ei >= 1) {
+      ErrorCode res = sca.getPhonemeByName(st, ps);
+      if (res == ErrorCode::ok) break;
+      st.pop_back();
+      --ei;
+    }
+    if (ps != nullptr) {
+      phonemes.push_back(std::move(st));
+      splitIntoPhonemes(sca, s.substr(ei), phonemes);
+    } else {
+      // No match found; just take the first codepoint
+      UTF8Iterator<const std::string_view> it(s);
+      ++it;
+      size_t pos = it.position();
+      phonemes.push_back(std::string(s.substr(0, pos)));
+      splitIntoPhonemes(sca, s.substr(pos), phonemes);
+    }
+  }
   const Token& Parser::peekToken() {
     while (index >= tokens.size()) {
       std::optional<sca::Token> thuh = l->getNext();
@@ -161,6 +189,41 @@ namespace sca {
       }
     }
     return matcher;
+  }
+  bool Parser::parseChar(bool allowSpace, MString& m) {
+    // char := phonemes | char_matcher
+    // (or possibly space ['#'])
+    size_t oldIndex = index;
+    std::optional<std::string> phonemes = parseString();
+    if (phonemes) {
+      // handle phonemes case
+      splitIntoPhonemes(*sca, *phonemes, m);
+      return true;
+    }
+    index = oldIndex;
+    std::optional<CharMatcher> matcher = parseMatcher();
+    if (matcher) {
+      m.push_back(std::move(*matcher));
+    }
+    if (allowSpace) {
+      if (!parseOperator(Operator::hash)) return false;
+      m.push_back(Space());
+    }
+    return false;
+  }
+  std::optional<MString> Parser::parseString(bool allowSpace) {
+    MString m;
+    bool atLeastOne = false;
+    while (true) {
+      size_t oldIndex = index;
+      bool s = parseChar(allowSpace, m);
+      if (!s) {
+        index = oldIndex;
+        if (atLeastOne) break;
+        return std::nullopt;
+      }
+    }
+    return std::move(m);
   }
   std::optional<ErrorCode> Parser::parseStatement() {
     size_t oldIndex = index;
