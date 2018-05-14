@@ -33,6 +33,9 @@ namespace sca {
     std::optional<CharMatcher::Constraint> parseMatcherConstraint();
     std::optional<CharMatcher> parseMatcher();
     std::optional<SimpleRule> parseSimpleRule();
+    std::optional<CompoundRule> parseCompoundRule();
+    std::optional<Rule> parseRule();
+    std::optional<SoundChange> parseSoundChange();
     bool parseChar(MString& m);
     std::optional<MString> parseString(bool allowEmpty);
   };

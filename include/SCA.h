@@ -10,6 +10,10 @@
 #include "errors.h"
 
 namespace sca {
+  enum class EvaluationOrder {
+    ltr,
+    rtl,
+  };
   struct CharClass {
     std::string name;
   };
@@ -44,6 +48,14 @@ namespace sca {
     MString alpha, omega;
     MString lambda, rho;
   };
+  struct CompoundRule {
+    std::vector<SimpleRule> components;
+  };
+  using Rule = std::variant<SimpleRule, CompoundRule>;
+  struct SoundChange {
+    Rule rule;
+    EvaluationOrder eo = EvaluationOrder::ltr;
+  };
   class SCA {
   public:
     [[nodiscard]] ErrorCode insertFeature(
@@ -62,11 +74,15 @@ namespace sca {
       const std::string& name, size_t& id, CharClass const*& cclass) const;
     [[nodiscard]] ErrorCode getPhonemeByName(
       const std::string& name, PhonemeSpec const*& ps) const;
+    void insertSoundChange(SoundChange&& sc) {
+      rules.push_back(std::move(sc));
+    }
   private:
     std::vector<CharClass> charClasses;
     std::vector<Feature> features;
     std::unordered_map<std::string, size_t> featuresByName;
     std::unordered_map<std::string, size_t> classesByName;
     std::unordered_map<std::string, PhonemeSpec> phonemes;
+    std::vector<SoundChange> rules;
   };
 }

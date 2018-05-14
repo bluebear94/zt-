@@ -223,7 +223,7 @@ namespace sca {
     return std::move(m);
   }
   std::optional<SimpleRule> Parser::parseSimpleRule() {
-    // sound_change := string '->' string ['(' env_string ')']
+    // simple_rule := string '->' string ['(' env_string ')']
     std::optional<MString> alpha = parseString(false);
     REQUIRE(alpha)
     REQUIRE_OPERATOR(Operator::arrow)
@@ -244,8 +244,45 @@ namespace sca {
     }
     return std::move(r);
   }
+  std::optional<CompoundRule> Parser::parseCompoundRule() {
+    // compound_rule := '{' (simple_rule ';')* '}'
+    REQUIRE_OPERATOR(Operator::lcb);
+    CompoundRule r;
+    while (true) {
+      Token t = peekToken();
+      if (t.isOperator(Operator::rcb)) {
+        getToken();
+        return r;
+      } else if (t.is<EndOfFile>()) {
+        return std::nullopt;
+      }
+      std::optional<SimpleRule> sr = parseSimpleRule();
+      REQUIRE(sr)
+      r.components.push_back(std::move(*sr));
+    }
+  }
+  std::optional<Rule> Parser::parseRule() {
+    size_t oldIndex = index;
+    auto sr = parseSimpleRule();
+    if (sr) return std::move(sr);
+    index = oldIndex;
+    return parseCompoundRule();
+  }
+  std::optional<SoundChange> Parser::parseSoundChange() {
+    std::optional<Rule> r = parseRule();
+    REQUIRE(r)
+    SoundChange sc;
+    sc.rule = std::move(*r);
+    return std::move(sc);
+  }
   std::optional<ErrorCode> Parser::parseStatement() {
     size_t oldIndex = index;
+    auto sc = parseSoundChange();
+    if (sc) {
+      sca->insertSoundChange(std::move(*sc));
+      return ErrorCode::ok;
+    }
+    index = oldIndex; // backtrack
     auto feature = parseFeature();
     if (feature) {
       ErrorCode c = sca->insertFeature(

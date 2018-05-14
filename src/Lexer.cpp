@@ -12,7 +12,13 @@ comments start with '#'
 
 statement := sound_change | feature_def | class_def
 
-sound_change := string '->' string ['(' env_string ')']
+sound_change := rule
+
+rule := simple_rule | compound_rule
+
+simple_rule := string '->' string ['(' env_string ')']
+
+compound_rule := '{' (simple_rule ';')* '}'
 
 string := char*
 
