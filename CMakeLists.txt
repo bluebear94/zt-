@@ -20,6 +20,7 @@ SET(SOURCES
   src/Parser.cpp
   src/SCA.cpp
   src/errors.cpp
+  src/matching.cpp
 )
 
 ADD_EXECUTABLE(sca_e_kozet ${SOURCES})

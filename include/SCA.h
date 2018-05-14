@@ -31,11 +31,15 @@ namespace sca {
     size_t getFeatureValue(size_t f) const {
       return (f < featureValues.size()) ? featureValues[f] : 0;
     }
+    bool hasClass(size_t cc) const { return charClass == cc; }
   };
   struct CharMatcher {
     struct Constraint {
       size_t feature;
       size_t instance;
+      bool matches(size_t otherInstance) const {
+        return instance == otherInstance;
+      }
     };
     size_t charClass;
     size_t index;

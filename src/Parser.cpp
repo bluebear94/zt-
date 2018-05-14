@@ -253,10 +253,10 @@ namespace sca {
     r.omega = std::move(*omega);
     if (peekToken().isOperator(Operator::lb)) {
       getToken();
-      std::optional<MString> lambda = parseString(false);
+      std::optional<MString> lambda = parseString(true);
       REQUIRE(lambda)
       REQUIRE_OPERATOR(Operator::placeholder)
-      std::optional<MString> rho = parseString(false);
+      std::optional<MString> rho = parseString(true);
       REQUIRE(rho)
       r.lambda = std::move(*lambda);
       r.rho = std::move(*rho);
@@ -346,7 +346,11 @@ namespace sca {
         std::cerr << things[which];
         std::cerr << ":\n";
         printLineColumn();
-        while (!getToken().isOperator(Operator::semicolon)) {}
+        while (true) {
+          const Token& t = getToken();
+          if (t.isOperator(Operator::semicolon) || t.is<EndOfFile>())
+            break;
+        }
       }
       else if (*res != ErrorCode::ok) {
         ok = false;
