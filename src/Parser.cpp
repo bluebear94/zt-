@@ -303,7 +303,7 @@ namespace sca {
     if (feature) {
       Error c = sca->insertFeature(
         std::move(feature->first), feature->second);
-      return c;
+      return std::move(c);
     }
     size_t indexFeature = index;
     index = oldIndex; // backtrack
@@ -311,7 +311,7 @@ namespace sca {
     if (charClass) {
       Error c = sca->insertClass(
         std::move(charClass->first), charClass->second);
-      return c;
+      return std::move(c);
     }
     size_t indexCC = index;
     size_t farthest = std::max(indexSC, std::max(indexFeature, indexCC));

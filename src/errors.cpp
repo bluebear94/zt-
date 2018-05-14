@@ -22,7 +22,7 @@ namespace sca {
   void printError(const Error& err) {
     std::cerr << "SCA error: " << stringError(err.ec) <<
       " (#" << (int) err.ec << ")";
-    if (!err.details.empty()) std::cerr << err.details;
+    if (!err.details.empty()) std::cerr << ": " << err.details;
     std::cerr << "\n";
   }
 }

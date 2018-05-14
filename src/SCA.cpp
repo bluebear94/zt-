@@ -7,7 +7,8 @@ namespace sca {
   Error Feature::getFeatureInstanceByName(
       const std::string& name, size_t& id) const {
     auto it = std::find(instanceNames.begin(), instanceNames.end(), name);
-    if (it == instanceNames.end()) return ErrorCode::noSuchFeatureInstance;
+    if (it == instanceNames.end())
+      return ErrorCode::noSuchFeatureInstance % name;
     id = it - instanceNames.begin();
     return ErrorCode::ok;
   }
@@ -16,7 +17,7 @@ namespace sca {
     size_t oldFeatureCount = features.size();
     auto res = featuresByName.insert(
       std::pair{f.featureName, oldFeatureCount});
-    if (!res.second) return ErrorCode::featureExists;
+    if (!res.second) return ErrorCode::featureExists % f.featureName;
     features.push_back(std::move(f));
     for (size_t ii = 0; ii < phonemesByFeature.size(); ++ii) {
       const std::vector<std::string>& phonemesInInstance =
@@ -38,10 +39,13 @@ namespace sca {
     size_t oldClassCount = charClasses.size();
     auto res = classesByName.insert(
       std::pair{name, oldClassCount});
-    if (!res.second) return ErrorCode::classExists;
+    if (!res.second) return ErrorCode::classExists % name;
     for (const std::string& phoneme : myPhonemes) {
       PhonemeSpec& spec = phonemes[phoneme];
-      if (spec.charClass != -1) return ErrorCode::phonemeAlreadyHasClass;
+      if (spec.charClass != -1)
+        return ErrorCode::phonemeAlreadyHasClass %
+          (phoneme + " is in " + charClasses[spec.charClass].name +
+            "; tried to insert it in " + name);
     }
     charClasses.emplace_back();
     CharClass& newClass = charClasses.back();
@@ -55,7 +59,8 @@ namespace sca {
   Error SCA::getFeatureByName(
       const std::string& name, size_t& id, Feature const*& feature) const {
     auto it = featuresByName.find(name);
-    if (it == featuresByName.end()) return ErrorCode::noSuchFeature;
+    if (it == featuresByName.end())
+      return ErrorCode::noSuchFeature % name;
     id = it->second;
     feature = &(features[it->second]);
     return ErrorCode::ok;
@@ -63,7 +68,8 @@ namespace sca {
   Error SCA::getClassByName(
       const std::string& name, size_t& id, CharClass const*& cclass) const {
     auto it = classesByName.find(name);
-    if (it == classesByName.end()) return ErrorCode::noSuchClass;
+    if (it == classesByName.end())
+      return ErrorCode::noSuchClass % name;
     id = it->second;
     cclass = &(charClasses[it->second]);
     return ErrorCode::ok;
@@ -71,7 +77,8 @@ namespace sca {
   Error SCA::getPhonemeByName(
       const std::string& name, PhonemeSpec const*& ps) const {
     auto it = phonemes.find(name);
-    if (it == phonemes.end()) return ErrorCode::noSuchPhoneme;
+    if (it == phonemes.end())
+      return ErrorCode::noSuchPhoneme % name;
     ps = &(it->second);
     return ErrorCode::ok;
   }
