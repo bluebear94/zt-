@@ -241,16 +241,16 @@ namespace sca {
     }
     return std::move(m);
   }
-  std::optional<SimpleRule> Parser::parseSimpleRule() {
+  std::optional<std::unique_ptr<SimpleRule>> Parser::parseSimpleRule() {
     // simple_rule := string '->' string ['(' env_string ')'] ';'
     std::optional<MString> alpha = parseString(false);
     REQUIRE(alpha)
     REQUIRE_OPERATOR(Operator::arrow)
     std::optional<MString> omega = parseString(false);
     REQUIRE(omega)
-    SimpleRule r;
-    r.alpha = std::move(*alpha);
-    r.omega = std::move(*omega);
+    auto r = std::make_unique<SimpleRule>();
+    r->alpha = std::move(*alpha);
+    r->omega = std::move(*omega);
     if (peekToken().isOperator(Operator::lb)) {
       getToken();
       std::optional<MString> lambda = parseString(true);
@@ -258,17 +258,17 @@ namespace sca {
       REQUIRE_OPERATOR(Operator::placeholder)
       std::optional<MString> rho = parseString(true);
       REQUIRE(rho)
-      r.lambda = std::move(*lambda);
-      r.rho = std::move(*rho);
+      r->lambda = std::move(*lambda);
+      r->rho = std::move(*rho);
       REQUIRE_OPERATOR(Operator::rb)
     }
     REQUIRE_OPERATOR(Operator::semicolon)
     return std::move(r);
   }
-  std::optional<CompoundRule> Parser::parseCompoundRule() {
+  std::optional<std::unique_ptr<CompoundRule>> Parser::parseCompoundRule() {
     // compound_rule := '{' simple_rule* '}'
     REQUIRE_OPERATOR(Operator::lcb);
-    CompoundRule r;
+    auto r = std::make_unique<CompoundRule>();
     while (true) {
       Token t = peekToken();
       if (t.isOperator(Operator::rcb)) {
@@ -277,12 +277,12 @@ namespace sca {
       } else if (t.is<EndOfFile>()) {
         return std::nullopt;
       }
-      std::optional<SimpleRule> sr = parseSimpleRule();
+      auto sr = parseSimpleRule();
       REQUIRE(sr)
-      r.components.push_back(std::move(*sr));
+      r->components.push_back(std::move(**sr));
     }
   }
-  std::optional<Rule> Parser::parseRule() {
+  std::optional<std::unique_ptr<Rule>> Parser::parseRule() {
     size_t oldIndex = index;
     auto sr = parseSimpleRule();
     if (sr) return std::move(sr);
@@ -294,7 +294,7 @@ namespace sca {
     return std::nullopt;
   }
   std::optional<SoundChange> Parser::parseSoundChange() {
-    std::optional<Rule> r = parseRule();
+    std::optional<std::unique_ptr<Rule>> r = parseRule();
     REQUIRE(r)
     SoundChange sc;
     sc.rule = std::move(*r);

@@ -21,6 +21,7 @@ SET(SOURCES
   src/SCA.cpp
   src/errors.cpp
   src/matching.cpp
+  src/Rule.cpp
 )
 
 ADD_EXECUTABLE(sca_e_kozet ${SOURCES})

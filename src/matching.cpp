@@ -39,49 +39,4 @@ namespace sca {
       }
     }, fr);
   }
-
-  std::optional<size_t> matchesFromStart(
-      const SCA& sca,
-      const SimpleRule& rule, const MString& str, size_t index) {
-    auto start = str.cbegin() + index;
-    auto end = start;
-    // Check if text itself matches
-    for (const MChar& ac : rule.alpha) {
-      if (end == str.cend()) return std::nullopt;
-      if (!charsMatch(sca, ac, *end)) return std::nullopt;
-      ++end;
-    }
-    // Check for context
-    auto lr = rule.lambda.crbegin();
-    auto ll = rule.lambda.crend();
-    auto cmp = std::reverse_iterator(start);
-    for (auto it = lr; it != ll; ++it) {
-      if (cmp == str.crend()) return std::nullopt;
-      if (!charsMatch(sca, *it, *cmp)) return std::nullopt;
-      ++cmp;
-    }
-    auto cmp2 = end;
-    for (const MChar& rc : rule.rho) {
-      if (cmp2 == str.cend()) return std::nullopt;
-      if (!charsMatch(sca, rc, *cmp2)) return std::nullopt;
-      ++cmp2;
-    }
-    return end - start;
-  }
-  std::optional<size_t> matchesFromStart(
-      const SCA& sca,
-      const CompoundRule& rule, const MString& str, size_t index) {
-    for (const SimpleRule& sr : rule.components) {
-      auto res = matchesFromStart(sca, sr, str, index);
-      if (res.has_value()) return res;
-    }
-    return std::nullopt;
-  }
-  std::optional<size_t> matchesFromStart(
-      const SCA& sca,
-      const Rule& rule, const MString& str, size_t index) {
-    return std::visit([=](const auto& arg) {
-      return matchesFromStart(sca, arg, str, index);
-    }, rule);
-  }
 }

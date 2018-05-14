@@ -2,11 +2,13 @@
 
 #include <stddef.h>
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
 
+#include "Rule.h"
 #include "errors.h"
 
 namespace sca {
@@ -33,31 +35,8 @@ namespace sca {
     }
     bool hasClass(size_t cc) const { return charClass == cc; }
   };
-  struct CharMatcher {
-    struct Constraint {
-      size_t feature;
-      size_t instance;
-      bool matches(size_t otherInstance) const {
-        return instance == otherInstance;
-      }
-    };
-    size_t charClass;
-    size_t index;
-    std::vector<Constraint> constraints;
-  };
-  struct Space {};
-  using MChar = std::variant<std::string, CharMatcher, Space>;
-  using MString = std::vector<MChar>;
-  struct SimpleRule {
-    MString alpha, omega;
-    MString lambda, rho;
-  };
-  struct CompoundRule {
-    std::vector<SimpleRule> components;
-  };
-  using Rule = std::variant<SimpleRule, CompoundRule>;
   struct SoundChange {
-    Rule rule;
+    std::unique_ptr<Rule> rule;
     EvaluationOrder eo = EvaluationOrder::ltr;
   };
   class SCA {
