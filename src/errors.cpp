@@ -15,6 +15,7 @@ namespace sca {
     "Explicit index cannot be zero",
     "Use of both unlabelled and labelled matchers in a simple rule",
     "Space character is not first in λ or last in ρ",
+    "Matcher in ω that was not defined in α, λ or ρ",
   };
   const char* stringError(ErrorCode ec) {
     int n = (int) ec;

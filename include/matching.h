@@ -14,9 +14,30 @@ namespace sca {
       return (std::hash<T1>()(p.first) >> 1) ^ (std::hash<T2>()(p.second));
     }
   };
+  class MatchResult {
+  public:
+    MatchResult(const PhonemeSpec* ps, bool owned) : ps(ps), owned(owned) {}
+    MatchResult(const MatchResult& mr) = delete;
+    MatchResult(MatchResult&& mr) : ps(mr.ps), owned(mr.owned) {
+      mr.ps = nullptr;
+      mr.owned = false;
+    }
+    MatchResult& operator=(MatchResult&& mr) {
+      ps = mr.ps;
+      owned = mr.owned;
+      mr.ps = nullptr;
+      mr.owned = false;
+      return *this;
+    }
+    ~MatchResult() {
+      if (owned) delete ps;
+    }
+    const PhonemeSpec* ps;
+    bool owned;
+  };
   using MatchCapture = std::unordered_map<
     std::pair<size_t, size_t>,
-    const PhonemeSpec*,
+    MatchResult,
     PHash<size_t, size_t>>;
   bool charsMatch(
     const SCA& sca, const MChar& fr, const MChar& fi, MatchCapture& mc);

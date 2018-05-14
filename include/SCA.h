@@ -32,27 +32,6 @@ namespace sca {
       const std::string& name, size_t& id) const;
   };
   using PhonemesByFeature = std::vector<std::vector<std::string>>;
-  struct PhonemeSpec {
-    std::string name;
-    size_t charClass = -1;
-    std::vector<size_t> featureValues;
-    size_t getFeatureValue(size_t f) const {
-      return (f < featureValues.size()) ? featureValues[f] : 0;
-    }
-    void setFeatureValue(size_t f, size_t i) {
-      if (f >= featureValues.size()) featureValues.resize(f + 1);
-      featureValues[f] = i;
-    }
-    bool hasClass(size_t cc) const { return charClass == cc; }
-    bool operator==(const PhonemeSpec& other) const {
-      if (charClass != other.charClass) return false;
-      size_t nf = std::max(featureValues.size(), other.featureValues.size());
-      for (size_t i = 0; i < nf; ++i) {
-        if (getFeatureValue(i) != other.getFeatureValue(i)) return false;
-      }
-      return true;
-    }
-  };
   struct PSHash {
     size_t operator()(const PhonemeSpec& ps) const {
       size_t x = std::hash<size_t>()(ps.charClass);
@@ -91,6 +70,7 @@ namespace sca {
       const std::string& name, size_t& id, CharClass const*& cclass) const;
     [[nodiscard]] Error getPhonemeByName(
       const std::string& name, PhonemeSpec const*& ps) const;
+    const CharClass& getClassByID(size_t id) const { return charClasses[id]; }
     void insertSoundChange(SoundChange&& sc) {
       rules.push_back(std::move(sc));
     }

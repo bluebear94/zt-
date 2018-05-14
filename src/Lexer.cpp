@@ -79,14 +79,14 @@ namespace sca {
     int c;
     do {
       c = cursor.read();
-    } while (isspace(c));
-    if (c == '#') {
-      // Comment; read the first character after the newline
-      do {
+      while (c == '#') {
+        // Comment; read the first character after the newline
+        do {
+          c = cursor.read();
+        } while (c != '\n' && c != std::char_traits<char>::eof());
         c = cursor.read();
-      } while (c != '\n');
-      c = cursor.read();
-    }
+      }
+    } while (isspace(c));
     Token t = empty(cursor);
     switch (c) {
       case std::char_traits<char>::eof(): {

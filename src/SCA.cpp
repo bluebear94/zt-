@@ -143,7 +143,7 @@ namespace sca {
   }
   void SCA::verify(std::vector<Error>& errors) const {
     for (const SoundChange& sc : rules) {
-      sc.rule->verify(errors);
+      sc.rule->verify(errors, *this);
     }
   }
   void SCA::reversePhonemeMap() {
@@ -160,6 +160,21 @@ namespace sca {
     for (const MChar& mc : ms) {
       if (std::holds_alternative<std::string>(mc))
         s += std::get<std::string>(mc);
+      else if (std::holds_alternative<PhonemeSpec>(mc)) {
+        const auto& spec = std::get<PhonemeSpec>(mc);
+        s += "[phoneme/";
+        if (spec.charClass == -1) s += '*';
+        else s += charClasses[spec.charClass].name;
+        s += ':';
+        for (size_t i = 0; i < features.size(); ++i) {
+          if (i != 0) s += ',';
+          size_t k = spec.getFeatureValue(i);
+          s += features[i].featureName;
+          s += '=';
+          s += features[i].instanceNames[k];
+        }
+        s += "]";
+      }
       else s += "#";
     }
     return s;

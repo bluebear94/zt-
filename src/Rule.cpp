@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include <algorithm>
+#include <unordered_set>
 
 #include "SCA.h"
 #include "matching.h"
@@ -83,12 +84,14 @@ namespace sca {
       str, start, end, omegaApp.begin(), omegaApp.end());
     return s;
   }
-  void SimpleRule::verify(std::vector<Error>& errors) const {
+  void SimpleRule::verify(std::vector<Error>& errors, const SCA& sca) const {
     // A rule should not have both unlabelled and labelled matchers.
     // Unlabelled matchers across different categories are fine.
     bool hasLabelledMatchers = false;
     bool hasUnlabelledMatchers = false;
-    auto checkString = [&](const MString& st) {
+    std::unordered_set<std::pair<size_t, size_t>, PHash<size_t, size_t>>
+    defined;
+    auto checkString = [&](const MString& st, bool write) {
       for (const MChar& c : st) {
         if (std::holds_alternative<CharMatcher>(c)) {
           const CharMatcher& m = std::get<CharMatcher>(c);
@@ -96,13 +99,23 @@ namespace sca {
           if (unlabelled ? hasLabelledMatchers : hasUnlabelledMatchers)
             errors.push_back(ErrorCode::mixedMatchers);
           (unlabelled ? hasUnlabelledMatchers : hasLabelledMatchers) = true;
+          if (write) {
+            defined.insert(std::pair(m.charClass, m.index));
+          } else {
+            if (defined.count(std::pair(m.charClass, m.index)) == 0) {
+              errors.push_back(ErrorCode::undefinedMatcher % (
+                sca.getClassByID(m.charClass).name + ":" +
+                std::to_string(m.index)
+              ));
+            }
+          }
         }
       }
     };
-    checkString(alpha);
-    checkString(omega);
-    checkString(lambda);
-    checkString(rho);
+    checkString(alpha, true);
+    checkString(rho, true);
+    checkString(lambda, true);
+    checkString(omega, false);
     for (size_t i = 1; i < lambda.size(); ++i) {
       if (std::holds_alternative<Space>(lambda[i])) {
         errors.push_back(ErrorCode::spacesWrong);
@@ -124,9 +137,9 @@ namespace sca {
     }
     return std::nullopt;
   }
-  void CompoundRule::verify(std::vector<Error>& errors) const {
+  void CompoundRule::verify(std::vector<Error>& errors, const SCA& sca) const {
     for (const SimpleRule& s : components) {
-      s.verify(errors);
+      s.verify(errors, sca);
     }
   }
 }

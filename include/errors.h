@@ -15,6 +15,7 @@ namespace sca {
     explicitLabelZero,
     mixedMatchers,
     spacesWrong,
+    undefinedMatcher,
   };
   struct Error {
     ErrorCode ec;
