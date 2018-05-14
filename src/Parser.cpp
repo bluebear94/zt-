@@ -151,7 +151,12 @@ namespace sca {
       index = oldIndex;
       return 0;
     }
-    return parseNumber();
+    std::optional<size_t> n = parseNumber();
+    REQUIRE(n)
+    if (*n == 0) {
+      printError(ErrorCode::explicitLabelZero);
+    };
+    return n;
   }
   std::optional<CharMatcher::Constraint> Parser::parseMatcherConstraint() {
     // class_constraint := feature_name '=' feature_instance
@@ -197,36 +202,42 @@ namespace sca {
     REQUIRE_OPERATOR(Operator::rb)
     return matcher;
   }
-  bool Parser::parseChar(MString& m) {
+  bool Parser::parseChar(MString& m, bool allowSpaces) {
     // char := phonemes | char_matcher
     // (or possibly space ['#'])
     size_t oldIndex = index;
     std::optional<std::string> phonemes = parseString();
-    if (phonemes) {
+    if (phonemes.has_value()) {
       // handle phonemes case
       splitIntoPhonemes(*sca, *phonemes, m);
       return true;
     }
     index = oldIndex;
     std::optional<CharMatcher> matcher = parseMatcher();
-    if (matcher) {
+    if (matcher.has_value()) {
       m.push_back(std::move(*matcher));
       return true;
     }
+    if (allowSpaces) {
+      index = oldIndex;
+      std::optional<Operator> op = parseOperator(Operator::boundary);
+      if (op.has_value()) {
+        m.push_back(Space());
+        return true;
+      }
+    }
     return false;
   }
-  std::optional<MString> Parser::parseString(bool allowEmpty) {
+  std::optional<MString>
+  Parser::parseString(bool allowSpaces) {
     MString m;
-    bool atLeastOne = false;
     while (true) {
       size_t oldIndex = index;
-      bool s = parseChar(m);
+      bool s = parseChar(m, allowSpaces);
       if (!s) {
         index = oldIndex;
-        if (atLeastOne || allowEmpty) break;
-        return std::nullopt;
+        break;
       }
-      atLeastOne = true;
     }
     return std::move(m);
   }
@@ -242,10 +253,10 @@ namespace sca {
     r.omega = std::move(*omega);
     if (peekToken().isOperator(Operator::lb)) {
       getToken();
-      std::optional<MString> lambda = parseString(true);
+      std::optional<MString> lambda = parseString(false);
       REQUIRE(lambda)
       REQUIRE_OPERATOR(Operator::placeholder)
-      std::optional<MString> rho = parseString(true);
+      std::optional<MString> rho = parseString(false);
       REQUIRE(rho)
       r.lambda = std::move(*lambda);
       r.rho = std::move(*rho);

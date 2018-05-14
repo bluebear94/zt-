@@ -37,8 +37,8 @@ namespace sca {
     std::optional<CompoundRule> parseCompoundRule();
     std::optional<Rule> parseRule();
     std::optional<SoundChange> parseSoundChange();
-    bool parseChar(MString& m);
-    std::optional<MString> parseString(bool allowEmpty);
+    bool parseChar(MString& m, bool allowSpaces);
+    std::optional<MString> parseString(bool allowSpaces);
     void printLineColumn();
   };
 }

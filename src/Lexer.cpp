@@ -104,6 +104,7 @@ namespace sca {
       case ';': RETURN_OP(Operator::semicolon);
       case '|': RETURN_OP(Operator::pipe);
       case '_': RETURN_OP(Operator::placeholder);
+      case '~': RETURN_OP(Operator::boundary);
       case '$': {
         Cursor temp = cursor;
         int d = cursor.read();

@@ -94,4 +94,48 @@ namespace sca {
       const std::string& name, PhonemeSpec*& ps) {
     return getPhonemeByName(name, (const PhonemeSpec*&) ps);
   }
+  static void verifyRule(const SimpleRule& s, std::vector<Error>& errors) {
+    // A rule should not have both unlabelled and labelled matchers.
+    // Unlabelled matchers across different categories are fine.
+    bool hasLabelledMatchers = false;
+    bool hasUnlabelledMatchers = false;
+    auto checkString = [&](const MString& st) {
+      for (const MChar& c : st) {
+        if (std::holds_alternative<CharMatcher>(c)) {
+          const CharMatcher& m = std::get<CharMatcher>(c);
+          bool unlabelled = m.index == 0;
+          if (unlabelled ? hasLabelledMatchers : hasUnlabelledMatchers)
+            errors.push_back(ErrorCode::mixedMatchers);
+          (unlabelled ? hasUnlabelledMatchers : hasLabelledMatchers) = true;
+        }
+      }
+    };
+    checkString(s.alpha);
+    checkString(s.omega);
+    checkString(s.lambda);
+    checkString(s.rho);
+    for (size_t i = 1; i < s.lambda.size(); ++i) {
+      if (std::holds_alternative<Space>(s.lambda[i])) {
+        errors.push_back(ErrorCode::spacesWrong);
+      }
+    }
+    for (size_t i = 0; i < s.rho.size() - 1; ++i) {
+      if (std::holds_alternative<Space>(s.rho[i])) {
+        errors.push_back(ErrorCode::spacesWrong);
+      }
+    }
+  }
+  static void verifyRule(const CompoundRule& c, std::vector<Error>& errors) {
+    for (const SimpleRule& s : c.components) {
+      verifyRule(s, errors);
+    }
+  }
+  static void verifyRule(const Rule& r, std::vector<Error>& errors) {
+    std::visit([&](const auto& arg) { verifyRule(arg, errors); }, r);
+  }
+  void SCA::verify(std::vector<Error>& errors) const {
+    for (const SoundChange& sc : rules) {
+      verifyRule(sc.rule, errors);
+    }
+  }
 }

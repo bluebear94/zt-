@@ -12,6 +12,9 @@ namespace sca {
     classExists,
     phonemeAlreadyHasClass,
     noSuchPhoneme,
+    explicitLabelZero,
+    mixedMatchers,
+    spacesWrong,
   };
   struct Error {
     ErrorCode ec;

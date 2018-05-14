@@ -17,6 +17,12 @@ int main(int argc, char** argv) {
   sca::Lexer lexer(&fh);
   sca::SCA mysca;
   sca::Parser parser(&lexer, &mysca);
-  parser.parse();
+  bool res = parser.parse();
+  if (!res) return 1;
+  std::vector<sca::Error> errors;
+  mysca.verify(errors);
+  for (const sca::Error& e : errors)
+    sca::printError(e);
+  if (!errors.empty()) return 1;
   return 0;
 }

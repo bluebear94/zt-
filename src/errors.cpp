@@ -12,6 +12,9 @@ namespace sca {
     "Character class already exists",
     "Phoneme already has character class",
     "No such phoneme",
+    "Explicit index cannot be zero",
+    "Use of both unlabelled and labelled matchers in a simple rule",
+    "Space character is not first in λ or last in ρ",
   };
   const char* stringError(ErrorCode ec) {
     int n = (int) ec;

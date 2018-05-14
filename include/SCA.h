@@ -42,7 +42,7 @@ namespace sca {
     std::vector<Constraint> constraints;
   };
   struct Space {};
-  using MChar = std::variant<std::string, CharMatcher>;
+  using MChar = std::variant<std::string, CharMatcher, Space>;
   using MString = std::vector<MChar>;
   struct SimpleRule {
     MString alpha, omega;
@@ -78,7 +78,7 @@ namespace sca {
     void insertSoundChange(SoundChange&& sc) {
       rules.push_back(std::move(sc));
     }
-    [[nodiscard]] Error verify();
+    void verify(std::vector<Error>& errors) const;
   private:
     std::vector<CharClass> charClasses;
     std::vector<Feature> features;
