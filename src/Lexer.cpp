@@ -10,15 +10,15 @@ Syntax:
 
 comments start with '#'
 
-statement := sound_change | feature_def
+statement := sound_change | feature_def | class_def
 
 sound_change := string '->' string ['(' env_string ')']
 
 string := char*
 
-char := phonemes | char_class
+char := phonemes | char_matcher
 
-char_class := '$(' class [':' int] ['|' class_constraints] ')'
+char_matcher := '$(' class [':' int] ['|' class_constraints] ')'
 
 class_constraints := class_constraint | class_constraint ',' class_constraints
 
@@ -26,9 +26,13 @@ class_constraint := feature_name '=' feature_instance
 
 env_string := env_char*
 
-feature_def := 'feature' feature_name '{' feature_body '}'
+env_char := char | '#'
+
+feature_def := 'feature' feature_name '{' feature_body* '}'
 
 feature_body := feature_instance ':' phoneme+ ';'
+
+class_def := 'class' class '=' phoneme+ ';'
 
 */
 
@@ -94,6 +98,7 @@ namespace sca {
       case ';': RETURN_OP(Operator::semicolon);
       case '|': RETURN_OP(Operator::pipe);
       case '_': RETURN_OP(Operator::placeholder);
+      case '#': RETURN_OP(Operator::hash);
       case '$': {
         Cursor temp = cursor;
         int d = cursor.read();
@@ -128,7 +133,9 @@ namespace sca {
               (void) cursor.read();
             } else break;
           }
-          t.contents = std::move(s);
+          if (s == "feature") t.contents = Operator::kwFeature;
+          if (s == "class") t.contents = Operator::kwClass;
+          else t.contents = std::move(s);
           return t;
         } else if (isdigit(c)) {
           size_t n = c - '0';

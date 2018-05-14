@@ -17,11 +17,14 @@ INCLUDE_DIRECTORIES(include/)
 SET(SOURCES
   src/main.cpp
   src/Lexer.cpp
+  src/Parser.cpp
+  src/SCA.cpp
+  src/errors.cpp
 )
 
 ADD_EXECUTABLE(sca_e_kozet ${SOURCES})
 SET(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} --std=c++17 -Wall -Werror -pedantic")
+  "${CMAKE_CXX_FLAGS} --std=c++17 -Wall -Werror -pedantic -fno-exceptions -fno-rtti")
 #TARGET_LINK_LIBRARIES(sca_e_kozet
 #  -lncursesw
 #)

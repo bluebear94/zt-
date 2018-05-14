@@ -1,3 +1,6 @@
+class C = p f m t s l n k x ŋ h;
+class V = a e i o u;
+
 feature pa {
   lb: p f m;
   av: t s l n;
