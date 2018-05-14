@@ -2,7 +2,35 @@
 
 #include <algorithm>
 
+#include "utf8.h"
+
 namespace sca {
+  void splitIntoPhonemes(
+      const SCA& sca, const std::string_view s, MString& phonemes) {
+    size_t ei = s.length();
+    if (ei == 0) return;
+    const PhonemeSpec* ps = nullptr;
+    // Go from the whole string and chop off the last character until
+    // we get a match
+    std::string st(s);
+    while (ei >= 1) {
+      Error res = sca.getPhonemeByName(st, ps);
+      if (res == ErrorCode::ok) break;
+      st.pop_back();
+      --ei;
+    }
+    if (ps != nullptr) {
+      phonemes.push_back(std::move(st));
+      splitIntoPhonemes(sca, s.substr(ei), phonemes);
+    } else {
+      // No match found; just take the first codepoint
+      UTF8Iterator<const std::string_view> it(s);
+      ++it;
+      size_t pos = it.position();
+      phonemes.push_back(std::string(s.substr(0, pos)));
+      splitIntoPhonemes(sca, s.substr(pos), phonemes);
+    }
+  }
   // I hope features with lots of instances aren't that common.
   Error Feature::getFeatureInstanceByName(
       const std::string& name, size_t& id) const {
@@ -11,6 +39,25 @@ namespace sca {
       return ErrorCode::noSuchFeatureInstance % name;
     id = it - instanceNames.begin();
     return ErrorCode::ok;
+  }
+  void SoundChange::apply(const SCA& sca, MString& st) const {
+    if (eo == EvaluationOrder::ltr) {
+      size_t i = 0;
+      while (i < st.size()) {
+        auto res = rule->tryReplace(sca, st, i);
+        if (res.has_value() && beh == Behaviour::once) break;
+        if (beh == Behaviour::loopnsi) i += *res;
+        else ++i;
+      }
+    } else {
+      size_t i = st.size() - 1;
+      while (i >= 0) {
+        auto res = rule->tryReplace(sca, st, i);
+        if (res.has_value() && beh == Behaviour::once) break;
+        if (beh == Behaviour::loopnsi) i -= *res;
+        else --i;
+      }
+    }
   }
   Error SCA::insertFeature(
       Feature&& f, const PhonemesByFeature& phonemesByFeature) {
@@ -98,5 +145,22 @@ namespace sca {
     for (const SoundChange& sc : rules) {
       sc.rule->verify(errors);
     }
+  }
+  void SCA::reversePhonemeMap() {
+    for (const auto& p : phonemes) {
+      phonemesReverse.insert(std::pair(p.second, p.first));
+    }
+  }
+  std::string SCA::apply(const std::string_view& st) const {
+    MString ms;
+    splitIntoPhonemes(*this, st, ms);
+    for (const SoundChange& r : rules)
+      r.apply(*this, ms);
+    std::string s;
+    for (const MChar& mc : ms) {
+      if (std::holds_alternative<std::string>(mc))
+        s += std::get<std::string>(mc);
+    }
+    return s;
   }
 }

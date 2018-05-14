@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits.h>
 #include <stddef.h>
 
 #include <memory>
@@ -15,6 +16,11 @@ namespace sca {
   enum class EvaluationOrder {
     ltr,
     rtl,
+  };
+  enum class Behaviour {
+    once,
+    loopnsi,
+    loopsi,
   };
   struct CharClass {
     std::string name;
@@ -33,11 +39,38 @@ namespace sca {
     size_t getFeatureValue(size_t f) const {
       return (f < featureValues.size()) ? featureValues[f] : 0;
     }
+    void setFeatureValue(size_t f, size_t i) {
+      if (f >= featureValues.size()) featureValues.resize(f + 1);
+      featureValues[f] = i;
+    }
     bool hasClass(size_t cc) const { return charClass == cc; }
+    bool operator==(const PhonemeSpec& other) const {
+      if (charClass != other.charClass) return false;
+      size_t nf = std::max(featureValues.size(), other.featureValues.size());
+      for (size_t i = 0; i < nf; ++i) {
+        if (getFeatureValue(i) != other.getFeatureValue(i)) return false;
+      }
+      return true;
+    }
+  };
+  struct PSHash {
+    size_t operator()(const PhonemeSpec& ps) const {
+      size_t x = std::hash<size_t>()(ps.charClass);
+      constexpr size_t bits = CHAR_BIT * sizeof(size_t);
+      int rot = 0;
+      for (size_t fv : ps.featureValues) {
+        // use raw to avoid issues on 0
+        x ^= (fv << rot) | (fv >> (bits - rot));
+        rot = (rot + 1) % bits;
+      }
+      return x;
+    }
   };
   struct SoundChange {
     std::unique_ptr<Rule> rule;
     EvaluationOrder eo = EvaluationOrder::ltr;
+    Behaviour beh = Behaviour::once;
+    void apply(const SCA& sca, MString& st) const;
   };
   class SCA {
   public:
@@ -61,7 +94,12 @@ namespace sca {
     void insertSoundChange(SoundChange&& sc) {
       rules.push_back(std::move(sc));
     }
+    void reversePhonemeMap();
+    auto getPhonemesBySpec(const PhonemeSpec& ps) const {
+      return phonemesReverse.equal_range(ps);
+    }
     void verify(std::vector<Error>& errors) const;
+    std::string apply(const std::string_view& st) const;
   private:
     std::vector<CharClass> charClasses;
     std::vector<Feature> features;
@@ -69,5 +107,9 @@ namespace sca {
     std::unordered_map<std::string, size_t> classesByName;
     std::unordered_map<std::string, PhonemeSpec> phonemes;
     std::vector<SoundChange> rules;
+    std::unordered_multimap<
+      PhonemeSpec, std::string, PSHash> phonemesReverse;
   };
+  void splitIntoPhonemes(
+    const SCA& sca, const std::string_view s, MString& phonemes);
 }

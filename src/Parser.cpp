@@ -4,35 +4,8 @@
 #include <string_view>
 
 #include "Lexer.h"
-#include "utf8.h"
 
 namespace sca {
-  static void splitIntoPhonemes(
-      const SCA& sca, const std::string_view s, MString& phonemes) {
-    size_t ei = s.length();
-    if (ei == 0) return;
-    const PhonemeSpec* ps = nullptr;
-    // Go from the whole string and chop off the last character until
-    // we get a match
-    std::string st(s);
-    while (ei >= 1) {
-      Error res = sca.getPhonemeByName(st, ps);
-      if (res == ErrorCode::ok) break;
-      st.pop_back();
-      --ei;
-    }
-    if (ps != nullptr) {
-      phonemes.push_back(std::move(st));
-      splitIntoPhonemes(sca, s.substr(ei), phonemes);
-    } else {
-      // No match found; just take the first codepoint
-      UTF8Iterator<const std::string_view> it(s);
-      ++it;
-      size_t pos = it.position();
-      phonemes.push_back(std::string(s.substr(0, pos)));
-      splitIntoPhonemes(sca, s.substr(pos), phonemes);
-    }
-  }
   const Token& Parser::peekToken() {
     while (index >= tokens.size()) {
       std::optional<sca::Token> thuh = l->getNext();

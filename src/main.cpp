@@ -5,12 +5,13 @@
 
 #include "Lexer.h"
 #include "Parser.h"
+#include "Rule.h"
 #include "SCA.h"
 #include "Token.h"
 
 int main(int argc, char** argv) {
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <input.zt>\n";
+  if (argc < 3) {
+    std::cerr << "Usage: " << argv[0] << " <input.zt> <words.txt>\n";
     return 1;
   }
   std::fstream fh(argv[1]);
@@ -24,5 +25,21 @@ int main(int argc, char** argv) {
   for (const sca::Error& e : errors)
     sca::printError(e);
   if (!errors.empty()) return 1;
+  mysca.reversePhonemeMap();
+  std::fstream wfh(argv[2]);
+  std::string line;
+  while (!wfh.eof()) {
+    std::getline(wfh, line);
+    if (line.empty()) continue;
+    std::cout << line << " -> ";
+    size_t i = line.find("#");
+    std::string pos;
+    if (i != std::string::npos) {
+      pos = line.substr(i + 1);
+      line.resize(i);
+    }
+    (void) pos; // ignore for now
+    std::cout << mysca.apply(line) << "\n";
+  }
   return 0;
 }
