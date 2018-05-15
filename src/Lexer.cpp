@@ -107,6 +107,7 @@ namespace sca {
       case '~': RETURN_OP(Operator::boundary);
       case '/': RETURN_OP(Operator::slash);
       case '*': RETURN_OP(Operator::star);
+      case '!': RETURN_OP(Operator::bang);
       case '$': {
         Cursor temp = cursor;
         int d = cursor.read();
@@ -164,7 +165,7 @@ namespace sca {
           }
           if (s == "feature") t.contents = Operator::kwFeature;
           else if (s == "class") t.contents = Operator::kwClass;
-          else if (s == "NOT") t.contents = Operator::kwNot;
+          else if (s == "NOT") t.contents = Operator::bang;
           else t.contents = std::move(s);
           return t;
         } else if (isdigit(c)) {

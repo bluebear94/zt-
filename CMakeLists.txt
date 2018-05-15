@@ -8,7 +8,8 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 ## ===============================================
 
-
+FIND_PACKAGE(Boost REQUIRED COMPONENTS filesystem system)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 ## ===============================================
 
@@ -27,6 +28,6 @@ SET(SOURCES
 ADD_EXECUTABLE(sca_e_kozet ${SOURCES})
 SET(CMAKE_CXX_FLAGS
   "${CMAKE_CXX_FLAGS} --std=c++17 -Wall -Werror -pedantic -fno-exceptions -fno-rtti")
-#TARGET_LINK_LIBRARIES(sca_e_kozet
-#  -lncursesw
-#)
+TARGET_LINK_LIBRARIES(sca_e_kozet
+  ${Boost_LIBRARIES}
+)

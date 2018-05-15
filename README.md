@@ -67,6 +67,9 @@ symbol as the actual word.
     # This doesn't crash but you'll be warned.
     $(C:1|pa=ve) -> $(C:1|ma=la) (_ ~);
 
+    # An example of replacing when the environment is mismatched.
+    e -> o !(t _ t);
+
 #### Comments
 
 They start with `#` and last until the end of the line.
@@ -97,7 +100,7 @@ the identity of a phoneme.
 
 #### Sound changes:
 
-    <α> -> <ω> [(<λ> _ <ρ>)];
+    <α> -> <ω> [[!] (<λ> _ <ρ>)];
 
 Specify a replacement from `<α>` to `<ω>`, optionally restricting the change
 to occur after `<λ>` and before `<ρ>`. Each of the strings can consist of
@@ -106,11 +109,14 @@ zero or more of the following:
 * a literal (no space needed between two literals; ztš will take the longest
   match to the phonemes it knows currently, or otherwise take one Unicode
   codepoint). Note that you can't use keywords such as `feature` or `class`
-  as a string (space them out). I don't want to make the lexer context-
-  sensitive.
+  as a string (space them out or wrap them in quotes). I don't want to make
+  the lexer context-sensitive.
 * a matcher
 * in `<λ>` or `<ρ>`, a word boundary marker (`~`) is also allowed at the
   beginning or end, respectively
+
+If the `!` is present, then the rule applies when the environment is not
+matched.
 
 Matchers take the following syntax:
 
@@ -169,7 +175,6 @@ sound change and not its individual components.
   a scripting language to support this in the future.
 * Enumerating matchers (UDN: C₁{p, t, k}) are not yet supported. Still
   thinking about the syntax for this.
-* Negated environments are not yet supported.
 * Ordered features (desirable for Middle Rymakonian phonorun reduction) are
   not yet supported.
 * Heck, why not add looping rules and such?

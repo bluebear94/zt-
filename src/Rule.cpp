@@ -33,6 +33,35 @@ namespace sca {
     }
     std::copy(b2, e2, v1.begin() + b1);
   }
+  static bool matchesEnv(
+      const SCA& sca,
+      const SimpleRule& r, const MString& str,
+      typename MString::iterator start,
+      typename MString::iterator end,
+      MatchCapture& mc) {
+    // Check for context
+    auto lr = r.lambda.rbegin();
+    auto ll = r.lambda.rend();
+    auto cmp = std::reverse_iterator(start);
+    for (auto it = lr; it != ll; ++it) {
+      if (cmp == str.rend()) {
+        if (it->is<Space>()) break;
+        return false;
+      }
+      if (!charsMatch(sca, *it, *cmp, mc)) return false;
+      ++cmp;
+    }
+    auto cmp2 = end;
+    for (const MChar& rc : r.rho) {
+      if (cmp2 == str.end()) {
+        if (rc.is<Space>()) break;
+        return false;
+      }
+      if (!charsMatch(sca, rc, *cmp2, mc)) return false;
+      ++cmp2;
+    }
+    return true;
+  }
   template<typename T>
   static void replaceSubrange(
       std::vector<T>& v1,
@@ -54,26 +83,8 @@ namespace sca {
       ++end;
     }
     // Check for context
-    auto lr = lambda.rbegin();
-    auto ll = lambda.rend();
-    auto cmp = std::reverse_iterator(start);
-    for (auto it = lr; it != ll; ++it) {
-      if (cmp == str.rend()) {
-        if (it->is<Space>()) break;
-        return std::nullopt;
-      }
-      if (!charsMatch(sca, *it, *cmp, mc)) return std::nullopt;
-      ++cmp;
-    }
-    auto cmp2 = end;
-    for (const MChar& rc : rho) {
-      if (cmp2 == str.end()) {
-        if (rc.is<Space>()) break;
-        return std::nullopt;
-      }
-      if (!charsMatch(sca, rc, *cmp2, mc)) return std::nullopt;
-      ++cmp2;
-    }
+    bool matches = matchesEnv(sca, *this, str, start, end, mc);
+    if (matches == inv) return std::nullopt;
     assert(end >= start);
     size_t s = (size_t) (end - start);
     // Now replace subrange

@@ -32,3 +32,6 @@ e -> (k _ t);
 # Try to make a velar lateral
 # This doesn't crash but you'll be warned.
 $(C:1|pa=ve) -> $(C:1|ma=la) (_ ~);
+
+# An example of replacing when the environment is mismatched.
+e -> o !(t _ t);

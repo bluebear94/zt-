@@ -33,6 +33,7 @@ namespace sca {
     std::optional<size_t> parseMatcherIndex();
     std::optional<CharMatcher::Constraint> parseMatcherConstraint();
     std::optional<CharMatcher> parseMatcher();
+    bool parseEnvironment(SimpleRule& r);
     std::optional<std::unique_ptr<SimpleRule>> parseSimpleRule();
     std::optional<std::unique_ptr<CompoundRule>> parseCompoundRule();
     std::optional<std::unique_ptr<Rule>> parseRule();

@@ -219,8 +219,30 @@ namespace sca {
     }
     return std::move(m);
   }
+  bool Parser::parseEnvironment(SimpleRule& r) {
+    // env = [['!'] '(' env_string ')']
+    const Token* t = &peekToken();
+    if (t->isOperator(Operator::bang)) {
+      getToken();
+      r.inv = true;
+      t = &peekToken();
+    }
+    if (t->isOperator(Operator::lb)) {
+      getToken();
+      std::optional<MString> lambda = parseString(true);
+      if (!lambda.has_value()) return false;
+      if (!parseOperator(Operator::placeholder).has_value()) return false;
+      std::optional<MString> rho = parseString(true);
+      if (!rho.has_value()) return false;
+      r.lambda = std::move(*lambda);
+      r.rho = std::move(*rho);
+      if (!parseOperator(Operator::rb).has_value()) return false;
+      return true;
+    }
+    return false;
+  }
   std::optional<std::unique_ptr<SimpleRule>> Parser::parseSimpleRule() {
-    // simple_rule := string '->' string ['(' env_string ')'] ';'
+    // simple_rule := string '->' string env
     std::optional<MString> alpha = parseString(false);
     REQUIRE(alpha)
     REQUIRE_OPERATOR(Operator::arrow)
@@ -229,21 +251,18 @@ namespace sca {
     auto r = std::make_unique<SimpleRule>();
     r->alpha = std::move(*alpha);
     r->omega = std::move(*omega);
-    if (peekToken().isOperator(Operator::lb)) {
-      getToken();
-      std::optional<MString> lambda = parseString(true);
-      REQUIRE(lambda)
-      REQUIRE_OPERATOR(Operator::placeholder)
-      std::optional<MString> rho = parseString(true);
-      REQUIRE(rho)
-      r->lambda = std::move(*lambda);
-      r->rho = std::move(*rho);
-      REQUIRE_OPERATOR(Operator::rb)
+    size_t oldIndex = index;
+    bool res = parseEnvironment(*r);
+    if (!res) {
+      index = oldIndex;
+      r->lambda.clear();
+      r->rho.clear();
+      r->inv = false;
     }
     return std::move(r);
   }
   std::optional<std::unique_ptr<CompoundRule>> Parser::parseCompoundRule() {
-    // compound_rule := '{' simple_rule* '}'
+    // compound_rule := '{' (simple_rule ';')* '}'
     REQUIRE_OPERATOR(Operator::lcb);
     auto r = std::make_unique<CompoundRule>();
     while (true) {

@@ -3,15 +3,27 @@
 #include <optional>
 #include <type_traits>
 
+#include <boost/filesystem.hpp>
+
 #include "Lexer.h"
 #include "Parser.h"
 #include "Rule.h"
 #include "SCA.h"
 #include "Token.h"
 
+namespace fs = boost::filesystem;
+
 int main(int argc, char** argv) {
   if (argc < 3) {
     std::cerr << "Usage: " << argv[0] << " <input.zt> <words.txt>\n";
+    return 1;
+  }
+  if (!fs::exists(argv[1]) || fs::is_directory(argv[1])) {
+    std::cerr << "File " << argv[1] << " doesn't exist or is a directory\n";
+    return 1;
+  }
+  if (!fs::exists(argv[2]) || fs::is_directory(argv[2])) {
+    std::cerr << "File " << argv[2] << " doesn't exist or is a directory\n";
     return 1;
   }
   std::fstream fh(argv[1]);

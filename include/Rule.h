@@ -70,6 +70,7 @@ namespace sca {
     void verify(std::vector<Error>& errors, const SCA& sca) const override;
     MString alpha, omega;
     MString lambda, rho;
+    bool inv;
   };
   struct CompoundRule : public Rule {
     std::optional<size_t> tryReplace(
