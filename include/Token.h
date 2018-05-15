@@ -28,6 +28,7 @@ namespace sca {
     star,
     kwFeature,
     kwClass,
+    kwNot,
   };
   struct Token {
     Token() : contents(EndOfFile()) {}

@@ -129,6 +129,27 @@ namespace sca {
           }
         }
       }
+      case 0x22: {
+        std::string s;
+        while (true) {
+          int d = cursor.read();
+          if (d == std::char_traits<char>::eof()) return std::nullopt;
+          if (d == 0x22) {
+            t.contents = std::move(s);
+            return t;
+          } else if (d == '\\') {
+            int e = cursor.read();
+            switch (e) {
+              case std::char_traits<char>::eof(): return std::nullopt;
+              case 0x22: s += (char) 0x22; break;
+              case '\\': s += '\\'; break;
+              case 'n': s += '\n'; break;
+            }
+          } else {
+            s += (char) d;
+          }
+        }
+      }
       default: {
         if (isStringChar(c)) {
           // Alphabetic: treat this as a string
@@ -143,6 +164,7 @@ namespace sca {
           }
           if (s == "feature") t.contents = Operator::kwFeature;
           else if (s == "class") t.contents = Operator::kwClass;
+          else if (s == "NOT") t.contents = Operator::kwNot;
           else t.contents = std::move(s);
           return t;
         } else if (isdigit(c)) {
