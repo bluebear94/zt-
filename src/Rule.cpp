@@ -118,10 +118,9 @@ namespace sca {
     return ipend;
   }
   // ------------------------------------------------------------------
-  std::optional<size_t> SimpleRule::tryReplace(
-      const SCA& sca, MString& str, size_t index) const {
+  std::optional<MSI> SimpleRule::tryReplaceLTR(
+      const SCA& sca, MString& str, MSI start) const {
     MatchCapture mc;
-    auto start = str.begin() + index;
     auto match = matchesRule(
       str.begin(), start, str.end(),
       alpha.begin(), alpha.end(),
@@ -134,14 +133,36 @@ namespace sca {
     if (!match) return std::nullopt;
     auto end = *match;
     assert(end >= start);
-    size_t s = (size_t) (end - start);
     // Now replace subrange
     MString omegaApp = omega;
     for (MChar& oc : omegaApp)
       oc = applyOmega(sca, std::move(oc), mc);
     replaceSubrange(
       str, start, end, omegaApp.begin(), omegaApp.end());
-    return s;
+    return end;
+  }
+  std::optional<MSRI> SimpleRule::tryReplaceRTL(
+      const SCA& sca, MString& str, MSRI start) const {
+    MatchCapture mc;
+    auto match = matchesRule(
+      str.rbegin(), start, str.rend(),
+      alpha.rbegin(), alpha.rend(),
+      rho.rbegin(), rho.rend(),
+      lambda.rbegin(), lambda.rend(),
+      inv,
+      sca,
+      mc
+    );
+    if (!match) return std::nullopt;
+    auto end = *match;
+    assert(end >= start);
+    // Now replace subrange
+    MString omegaApp = omega;
+    for (MChar& oc : omegaApp)
+      oc = applyOmega(sca, std::move(oc), mc);
+    replaceSubrange(
+      str, end.base(), start.base(), omegaApp.begin(), omegaApp.end());
+    return end;
   }
   void SimpleRule::verify(std::vector<Error>& errors, const SCA& sca) const {
     // A rule should not have both unlabelled and labelled matchers.
@@ -197,11 +218,19 @@ namespace sca {
       }
     }
   }
-  std::optional<size_t> CompoundRule::tryReplace(
-      const SCA& sca, MString& str, size_t index) const {
+  std::optional<MSI> CompoundRule::tryReplaceLTR(
+      const SCA& sca, MString& str, MSI start) const {
     for (const SimpleRule& sr : components) {
-      auto res = sr.tryReplace(sca, str, index);
-      if (res.has_value()) return res;
+      auto res = sr.tryReplaceLTR(sca, str, start);
+      if (res.has_value()) return *res;
+    }
+    return std::nullopt;
+  }
+  std::optional<MSRI> CompoundRule::tryReplaceRTL(
+      const SCA& sca, MString& str, MSRI start) const {
+    for (const SimpleRule& sr : components) {
+      auto res = sr.tryReplaceRTL(sca, str, start);
+      if (res.has_value()) return *res;
     }
     return std::nullopt;
   }

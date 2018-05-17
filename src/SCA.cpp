@@ -44,24 +44,20 @@ namespace sca {
       const SCA& sca, MString& st, const std::string& pos) const {
     if (!poses.empty() && poses.count(pos) == 0) return;
     if (eo == EvaluationOrder::ltr) {
-      size_t i = 0;
-      while (i <= st.size()) {
-        auto res = rule->tryReplace(sca, st, i);
+      auto it = st.begin();
+      while (it != st.end()) {
+        auto res = rule->tryReplaceLTR(sca, st, it);
         if (res.has_value() && beh == Behaviour::once) break;
-        if (beh == Behaviour::loopnsi) i += *res;
-        else ++i;
+        if (beh == Behaviour::loopnsi) it = *res;
+        else ++it;
       }
     } else {
-      size_t i = st.size();
-      while (true) {
-        auto res = rule->tryReplace(sca, st, i);
+      auto it = st.rbegin();
+      while (it != st.rend()) {
+        auto res = rule->tryReplaceRTL(sca, st, it);
         if (res.has_value() && beh == Behaviour::once) break;
-        // XXX this assumes that all matches of a given rule
-        // are of the same length. This is true right now,
-        // but might not be once alternations are supported.
-        size_t amt = (beh == Behaviour::loopnsi) ? *res : 1;
-        if (i < amt) break; // this would carry it below zero
-        i -= amt;
+        if (beh == Behaviour::loopnsi) it = *res;
+        else ++it;
       }
     }
   }

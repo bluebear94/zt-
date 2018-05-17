@@ -55,24 +55,32 @@ namespace sca {
     }
   };
   using MString = std::vector<MChar>;
+  using MSI = typename MString::iterator;
+  using MSRI = typename MString::reverse_iterator;
   class Rule {
   public:
     virtual ~Rule() {};
-    virtual std::optional<size_t> tryReplace(
-      const SCA& sca, MString& str, size_t index) const = 0;
+    virtual std::optional<MSI> tryReplaceLTR(
+      const SCA& sca, MString& str, MSI start) const = 0;
+    virtual std::optional<MSRI> tryReplaceRTL(
+      const SCA& sca, MString& str, MSRI start) const = 0;
     virtual void verify(std::vector<Error>& errors, const SCA& sca) const {}
   };
   struct SimpleRule : public Rule {
-    std::optional<size_t> tryReplace(
-      const SCA& sca, MString& str, size_t index) const override;
+    std::optional<MSI> tryReplaceLTR(
+      const SCA& sca, MString& str, MSI start) const override;
+    std::optional<MSRI> tryReplaceRTL(
+      const SCA& sca, MString& str, MSRI start) const override;
     void verify(std::vector<Error>& errors, const SCA& sca) const override;
     MString alpha, omega;
     MString lambda, rho;
     bool inv;
   };
   struct CompoundRule : public Rule {
-    std::optional<size_t> tryReplace(
-      const SCA& sca, MString& str, size_t index) const override;
+    std::optional<MSI> tryReplaceLTR(
+      const SCA& sca, MString& str, MSI start) const override;
+    std::optional<MSRI> tryReplaceRTL(
+      const SCA& sca, MString& str, MSRI start) const override;
     void verify(std::vector<Error>& errors, const SCA& sca) const override;
     std::vector<SimpleRule> components;
   };
