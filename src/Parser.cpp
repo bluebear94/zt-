@@ -56,6 +56,8 @@ namespace sca {
     feature_body := feature_instance ':' phoneme+ ';'
     */
     Feature f;
+    f.line = l->getLine();
+    f.col = l->getCol();
     REQUIRE_OPERATOR(Operator::kwFeature)
     std::optional<std::string> name = parseString();
     REQUIRE(name)
@@ -280,15 +282,20 @@ namespace sca {
     }
   }
   std::optional<std::unique_ptr<Rule>> Parser::parseRule() {
+    size_t line = l->getLine(), col = l->getCol();
     size_t oldIndex = index;
     auto sr = parseSimpleRule();
     if (sr) {
+      (*sr)->line = line;
+      (*sr)->col = col;
       return std::move(sr);
     }
     size_t farthest = index;
     index = oldIndex;
     auto cr = parseCompoundRule();
     if (cr) {
+      (*cr)->line = line;
+      (*cr)->col = col;
       return std::move(cr);
     }
     index = std::max(farthest, index);
@@ -361,10 +368,12 @@ namespace sca {
     }
     size_t indexFeature = index;
     index = oldIndex; // backtrack
+    size_t ccline = l->getLine(), cccol = l->getCol(); // Can't say that name!
     auto charClass = parseCharClass();
     if (charClass) {
       Error c = sca->insertClass(
-        std::move(charClass->first), charClass->second);
+        std::move(charClass->first), charClass->second,
+        ccline, cccol);
       return std::move(c);
     }
     size_t indexCC = index;

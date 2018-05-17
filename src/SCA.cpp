@@ -66,7 +66,10 @@ namespace sca {
     size_t oldFeatureCount = features.size();
     auto res = featuresByName.insert(
       std::pair{f.featureName, oldFeatureCount});
-    if (!res.second) return ErrorCode::featureExists % f.featureName;
+    if (!res.second) {
+      const Feature& old = features[res.first->second];
+      return (ErrorCode::featureExists % f.featureName).at(old.line, old.col);
+    }
     features.push_back(std::move(f));
     for (size_t ii = 0; ii < phonemesByFeature.size(); ++ii) {
       const std::vector<std::string>& phonemesInInstance =
@@ -84,11 +87,15 @@ namespace sca {
     return ErrorCode::ok;
   }
   Error SCA::insertClass(
-      std::string&& name, const std::vector<std::string>& myPhonemes) {
+      std::string&& name, const std::vector<std::string>& myPhonemes,
+      size_t line, size_t col) {
     size_t oldClassCount = charClasses.size();
     auto res = classesByName.insert(
       std::pair{name, oldClassCount});
-    if (!res.second) return ErrorCode::classExists % name;
+    if (!res.second) {
+      const CharClass& old = charClasses[res.first->second];
+      return (ErrorCode::classExists % name).at(old.line, old.col);
+    }
     for (const std::string& phoneme : myPhonemes) {
       PhonemeSpec& spec = phonemes[phoneme];
       if (spec.charClass != -1)
@@ -99,6 +106,8 @@ namespace sca {
     charClasses.emplace_back();
     CharClass& newClass = charClasses.back();
     newClass.name = std::move(name);
+    newClass.line = line;
+    newClass.col = col;
     for (const std::string& phoneme : myPhonemes) {
       PhonemeSpec& spec = phonemes[phoneme];
       spec.charClass = oldClassCount;

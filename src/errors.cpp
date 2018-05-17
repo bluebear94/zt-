@@ -28,6 +28,10 @@ namespace sca {
     std::cerr << "SCA error: " << stringError(err.ec) <<
       " (#" << (int) err.ec << ")";
     if (!err.details.empty()) std::cerr << ": " << err.details;
+    if (err.line != -1 && err.col != -1) {
+      std::cerr << " at line " << (err.line + 1) <<
+        ", column " << (err.col + 1);
+    }
     std::cerr << "\n";
   }
 }

@@ -65,6 +65,7 @@ namespace sca {
     virtual std::optional<MSRI> tryReplaceRTL(
       const SCA& sca, MString& str, MSRI start) const = 0;
     virtual void verify(std::vector<Error>& errors, const SCA& sca) const {}
+    size_t line = -1, col = -1;
   };
   struct SimpleRule : public Rule {
     std::optional<MSI> tryReplaceLTR(

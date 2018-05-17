@@ -177,24 +177,25 @@ namespace sca {
           const CharMatcher& m = c.as<CharMatcher>();
           bool unlabelled = m.index == 0;
           if (unlabelled ? hasLabelledMatchers : hasUnlabelledMatchers)
-            errors.push_back(ErrorCode::mixedMatchers);
+            errors.push_back(Error(ErrorCode::mixedMatchers).at(line, col));
           (unlabelled ? hasUnlabelledMatchers : hasLabelledMatchers) = true;
           if (write) {
             defined.insert(std::pair(m.charClass, m.index));
           } else {
             // Reject if not already defined...
             if (defined.count(std::pair(m.charClass, m.index)) == 0) {
-              errors.push_back(ErrorCode::undefinedMatcher % (
+              errors.push_back((ErrorCode::undefinedMatcher % (
                 sca.getClassByID(m.charClass).name + ":" +
                 std::to_string(m.index)
-              ));
+              )).at(line, col));
             }
             // ... or tries to set a non-core feature
             for (const CharMatcher::Constraint& con : m.constraints) {
               const auto& f = sca.getFeatureByID(con.feature);
               if (!f.isCore) {
-                errors.push_back(ErrorCode::nonCoreFeatureSet % (
-                  f.featureName + "=" + f.instanceNames[con.instance]));
+                errors.push_back((ErrorCode::nonCoreFeatureSet % (
+                  f.featureName + "=" + f.instanceNames[con.instance]))
+                  .at(line, col));
               }
             }
           }
@@ -207,13 +208,13 @@ namespace sca {
     checkString(omega, false);
     for (size_t i = 1; i < lambda.size(); ++i) {
       if (lambda[i].is<Space>()) {
-        errors.push_back(ErrorCode::spacesWrong);
+        errors.push_back(Error(ErrorCode::spacesWrong).at(line, col));
       }
     }
     if (rho.size() > 0) {
       for (size_t i = 0; i < rho.size() - 1; ++i) {
         if (rho[i].is<Space>()) {
-          errors.push_back(ErrorCode::spacesWrong);
+          errors.push_back(Error(ErrorCode::spacesWrong).at(line, col));
         }
       }
     }

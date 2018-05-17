@@ -25,11 +25,13 @@ namespace sca {
   };
   struct CharClass {
     std::string name;
+    size_t line, col;
   };
   struct Feature {
     std::string featureName;
     std::vector<std::string> instanceNames;
     size_t def = 0;
+    size_t line, col;
     bool isCore;
     [[nodiscard]] Error getFeatureInstanceByName(
       const std::string& name, size_t& id) const;
@@ -60,7 +62,8 @@ namespace sca {
     [[nodiscard]] Error insertFeature(
       Feature&& f, const PhonemesByFeature& phonemesByFeature);
     [[nodiscard]] Error insertClass(
-      std::string&& name, const std::vector<std::string>& myPhonemes);
+      std::string&& name, const std::vector<std::string>& myPhonemes,
+      size_t line, size_t col);
     [[nodiscard]] Error getFeatureByName(
       const std::string& name, size_t& id, Feature*& feature);
     [[nodiscard]] Error getClassByName(
