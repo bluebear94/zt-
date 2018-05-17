@@ -16,6 +16,7 @@ namespace sca {
     mixedMatchers,
     spacesWrong,
     undefinedMatcher,
+    nonCoreFeatureSet,
   };
   struct Error {
     ErrorCode ec;

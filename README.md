@@ -133,10 +133,8 @@ a match.
 
 Of course, matchers can be specified in `<ω>` as well. Such a matcher outputs
 the phoneme matched by the same matcher in one of `<α>`, `<λ>` or `<ρ>`
-and changes features based on the constraints given. (Changing a non-core
-feature in a matcher in `<ω>` will probably do funny things. I'll probably
-make the verifier reject this in a future update or find a way to make it
-work.)
+and changes features based on the constraints given. Only core features can
+be set in `<ω>`; it wouldn't make sense to change a non-core feature there.
 
 A compound rule can be specified as follows:
 

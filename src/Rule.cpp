@@ -106,7 +106,7 @@ namespace sca {
     bool hasLabelledMatchers = false;
     bool hasUnlabelledMatchers = false;
     std::unordered_set<std::pair<size_t, size_t>, PHash<size_t, size_t>>
-    defined;
+    defined; // Set of defined symbols
     auto checkString = [&](const MString& st, bool write) {
       for (const MChar& c : st) {
         if (c.is<CharMatcher>()) {
@@ -118,11 +118,20 @@ namespace sca {
           if (write) {
             defined.insert(std::pair(m.charClass, m.index));
           } else {
+            // Reject if not already defined...
             if (defined.count(std::pair(m.charClass, m.index)) == 0) {
               errors.push_back(ErrorCode::undefinedMatcher % (
                 sca.getClassByID(m.charClass).name + ":" +
                 std::to_string(m.index)
               ));
+            }
+            // ... or tries to set a non-core feature
+            for (const CharMatcher::Constraint& con : m.constraints) {
+              const auto& f = sca.getFeatureByID(con.feature);
+              if (!f.isCore) {
+                errors.push_back(ErrorCode::nonCoreFeatureSet % (
+                  f.featureName + "=" + f.instanceNames[con.instance]));
+              }
             }
           }
         }
