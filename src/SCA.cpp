@@ -173,12 +173,15 @@ namespace sca {
         if (spec.charClass == -1) s += '*';
         else s += charClasses[spec.charClass].name;
         s += ':';
+        bool first = true;
         for (size_t i = 0; i < features.size(); ++i) {
-          if (i != 0) s += ',';
+          if (!features[i].isCore) continue;
+          if (!first) s += ',';
           size_t k = spec.getFeatureValue(i, *this);
           s += features[i].featureName;
           s += '=';
           s += features[i].instanceNames[k];
+          first = false;
         }
         s += "]";
       }

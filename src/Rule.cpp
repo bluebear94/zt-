@@ -14,6 +14,7 @@ namespace sca {
       featureValues[f] :
       sca.getFeatureByID(f).def;
   }
+  // ------------------------------------------------------------------
   template<typename T>
   static void replaceSubrange(
       std::vector<T>& v1,
@@ -38,35 +39,6 @@ namespace sca {
     }
     std::copy(b2, e2, v1.begin() + b1);
   }
-  static bool matchesEnv(
-      const SCA& sca,
-      const SimpleRule& r, const MString& str,
-      typename MString::iterator start,
-      typename MString::iterator end,
-      MatchCapture& mc) {
-    // Check for context
-    auto lr = r.lambda.rbegin();
-    auto ll = r.lambda.rend();
-    auto cmp = std::reverse_iterator(start);
-    for (auto it = lr; it != ll; ++it) {
-      if (cmp == str.rend()) {
-        if (it->is<Space>()) break;
-        return false;
-      }
-      if (!charsMatch(sca, *it, *cmp, mc)) return false;
-      ++cmp;
-    }
-    auto cmp2 = end;
-    for (const MChar& rc : r.rho) {
-      if (cmp2 == str.end()) {
-        if (rc.is<Space>()) break;
-        return false;
-      }
-      if (!charsMatch(sca, rc, *cmp2, mc)) return false;
-      ++cmp2;
-    }
-    return true;
-  }
   template<typename T>
   static void replaceSubrange(
       std::vector<T>& v1,
@@ -76,20 +48,91 @@ namespace sca {
       typename std::vector<T>::iterator e2) {
     replaceSubrange(v1, b1 - v1.begin(), e1 - v1.begin(), b2, e2);
   }
+  // ------------------------------------------------------------------
+  template<typename It>
+  struct IRev {
+    static auto get(It it) {
+      return std::reverse_iterator<It>(it);
+    }
+  };
+  template<typename It>
+  struct IRev<std::reverse_iterator<It>> {
+    static auto get(std::reverse_iterator<It> it) {
+      return it.base();
+    }
+  };
+  template<typename It>
+  auto reverseIterator(It it) {
+    return IRev<It>::get(it);
+  }
+  // If the pattern matches the text at the start point, return the iterator
+  // to the end of the match. Otherwise, return std::nullopt.
+  template<typename Fwd, typename CFwd
+  > // templated to handle both fwd and rev cases
+  static std::optional<Fwd> matchesPattern(
+    Fwd istart, // where to start looking
+    Fwd iend, // end of string (stop looking when you reach here)
+    CFwd rstart, // iterator to start of rule
+    CFwd rend, // iterator to end of rule
+    const SCA& sca,
+    MatchCapture& mc
+  ) {
+    Fwd iit = istart;
+    CFwd rit = rstart;
+    while (true) {
+      if (rit == rend) // all chars matched
+        return iit;
+      if (iit == iend) { // end of string but unmatched chars
+        if (rit->template is<Space>()) return iit;
+        return std::nullopt;
+      }
+      const auto& inRule = *rit;
+      const auto& inText = *iit;
+      if (!charsMatch(sca, inRule, inText, mc)) return std::nullopt;
+      ++iit;
+      ++rit;
+    }
+  }
+  template<typename Fwd, typename CFwd>
+  static std::optional<Fwd> matchesRule(
+    Fwd istart, Fwd ipoint, Fwd iend, // text start / search start / text end
+    CFwd astart, CFwd aend, // alpha
+    CFwd lstart, CFwd lend, // lambda
+    CFwd rstart, CFwd rend, // rho
+    bool envInverted, // Match if environment is NOT matched (vs matched)?
+    const SCA& sca,
+    MatchCapture& mc
+  ) {
+    auto amatch = matchesPattern(ipoint, iend, astart, aend, sca, mc);
+    if (!amatch) return std::nullopt;
+    Fwd ipend = *amatch;
+    auto matchesEnv = [=, &sca, &mc]() -> bool {
+      if (!matchesPattern(
+          reverseIterator(ipoint), reverseIterator(istart),
+          reverseIterator(lend), reverseIterator(lstart),
+          sca, mc))
+        return false;
+      return matchesPattern(ipend, iend, rstart, rend, sca, mc).has_value();
+    };
+    if (matchesEnv() == envInverted) return std::nullopt;
+    return ipend;
+  }
+  // ------------------------------------------------------------------
   std::optional<size_t> SimpleRule::tryReplace(
       const SCA& sca, MString& str, size_t index) const {
     MatchCapture mc;
     auto start = str.begin() + index;
-    auto end = start;
-    // Check if text itself matches
-    for (const MChar& ac : alpha) {
-      if (end == str.end()) return std::nullopt;
-      if (!charsMatch(sca, ac, *end, mc)) return std::nullopt;
-      ++end;
-    }
-    // Check for context
-    bool matches = matchesEnv(sca, *this, str, start, end, mc);
-    if (matches == inv) return std::nullopt;
+    auto match = matchesRule(
+      str.begin(), start, str.end(),
+      alpha.begin(), alpha.end(),
+      lambda.begin(), lambda.end(),
+      rho.begin(), rho.end(),
+      inv,
+      sca,
+      mc
+    );
+    if (!match) return std::nullopt;
+    auto end = *match;
     assert(end >= start);
     size_t s = (size_t) (end - start);
     // Now replace subrange

@@ -107,7 +107,7 @@ feature vlat {
 
 # L-recession for nouns
 
-ʔ -> : n;
+ʔ -> / loopnsi : n;
 $(C:1|ma=ap)l -> $(C:1) / loopnsi : n;
 $(C:1|ma=na)l -> ŋ / loopnsi : n;
 r l -> r / loopnsi : n;
