@@ -9,6 +9,11 @@
 #include "matching.h"
 
 namespace sca {
+  size_t PhonemeSpec::getFeatureValue(size_t f, const SCA& sca) const {
+    return (f < featureValues.size()) ?
+      featureValues[f] :
+      sca.getFeatureByID(f).def;
+  }
   template<typename T>
   static void replaceSubrange(
       std::vector<T>& v1,

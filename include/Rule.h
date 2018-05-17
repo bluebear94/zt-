@@ -13,9 +13,7 @@ namespace sca {
     std::string name;
     size_t charClass = -1;
     std::vector<size_t> featureValues;
-    size_t getFeatureValue(size_t f) const {
-      return (f < featureValues.size()) ? featureValues[f] : 0;
-    }
+    size_t getFeatureValue(size_t f, const SCA& sca) const;
     void setFeatureValue(size_t f, size_t i) {
       if (f >= featureValues.size()) featureValues.resize(f + 1);
       featureValues[f] = i;

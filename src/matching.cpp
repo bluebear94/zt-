@@ -58,7 +58,7 @@ namespace sca {
           return false;
         // Does this phoneme satisfy our constraints?
         for (const CharMatcher::Constraint& con : arg.constraints) {
-          if (!con.matches(ps->getFeatureValue(con.feature)))
+          if (!con.matches(ps->getFeatureValue(con.feature, sca)))
             return false;
         }
         auto itres = mc.try_emplace(
@@ -73,8 +73,8 @@ namespace sca {
             ps->featureValues.size(),
             rememberedPS->featureValues.size());
           for (size_t i = 0; i < nFeatures; ++i) {
-            size_t myval = ps->getFeatureValue(i);
-            size_t remval = rememberedPS->getFeatureValue(i);
+            size_t myval = ps->getFeatureValue(i, sca);
+            size_t remval = rememberedPS->getFeatureValue(i, sca);
             for (const CharMatcher::Constraint& con : arg.constraints) {
               if (con.feature == i) goto ignore;
             }

@@ -29,6 +29,7 @@ namespace sca {
   struct Feature {
     std::string featureName;
     std::vector<std::string> instanceNames;
+    size_t def = 0;
     bool isCore;
     [[nodiscard]] Error getFeatureInstanceByName(
       const std::string& name, size_t& id) const;

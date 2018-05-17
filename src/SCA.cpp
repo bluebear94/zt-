@@ -175,7 +175,7 @@ namespace sca {
         s += ':';
         for (size_t i = 0; i < features.size(); ++i) {
           if (i != 0) s += ',';
-          size_t k = spec.getFeatureValue(i);
+          size_t k = spec.getFeatureValue(i, *this);
           s += features[i].featureName;
           s += '=';
           s += features[i].instanceNames[k];
@@ -192,6 +192,7 @@ namespace sca {
     int rot = 0;
     for (size_t i = 0; i < ps.featureValues.size(); ++i) {
       size_t fv = ps.featureValues[i];
+      fv -= sca->getFeatureByID(i).def;
       // use raw to avoid issues on 0
       if (sca->getFeatureByID(i).isCore)
         x ^= (fv << rot) | (fv >> (bits - rot));
@@ -205,7 +206,8 @@ namespace sca {
     size_t nf = std::max(a.featureValues.size(), b.featureValues.size());
     for (size_t i = 0; i < nf; ++i) {
       if (!sca.getFeatureByID(i).isCore) continue;
-      if (a.getFeatureValue(i) != b.getFeatureValue(i)) return false;
+      if (a.getFeatureValue(i, sca) != b.getFeatureValue(i, sca))
+        return false;
     }
     return true;
   }
