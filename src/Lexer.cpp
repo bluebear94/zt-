@@ -4,44 +4,6 @@
 
 #include <iostream>
 
-/*
-
-Syntax:
-
-comments start with '#'
-
-statement := sound_change | feature_def | class_def
-
-sound_change := rule ['/' option+] [: pos+] ';'
-
-rule := simple_rule | compound_rule
-
-simple_rule := string '->' string ['(' env_string ')']
-
-compound_rule := '{' (simple_rule ';'* '}'
-
-string := char*
-
-char := phonemes | char_matcher
-
-char_matcher := '$(' class [':' int] ['|' class_constraints] ')'
-
-class_constraints := class_constraint | class_constraint ',' class_constraints
-
-class_constraint := feature_name '=' feature_instance
-
-env_string := env_char*
-
-env_char := char | '~'
-
-feature_def := 'feature' feature_name ['*'] '{' feature_body* '}'
-
-feature_body := feature_instance ':' phoneme+ ';'
-
-class_def := 'class' class '=' phoneme+ ';'
-
-*/
-
 namespace sca {
   int Cursor::read() noexcept {
     s->clear();
@@ -107,7 +69,15 @@ namespace sca {
       case '~': RETURN_OP(Operator::boundary);
       case '/': RETURN_OP(Operator::slash);
       case '*': RETURN_OP(Operator::star);
-      case '!': RETURN_OP(Operator::bang);
+      case '!': {
+        Cursor temp = cursor;
+        int d = cursor.read();
+        if (d == '=') {
+          RETURN_OP(Operator::notEquals);
+        }
+        cursor = temp;
+        RETURN_OP(Operator::bang);
+      }
       case '$': {
         Cursor temp = cursor;
         int d = cursor.read();

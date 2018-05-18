@@ -19,6 +19,7 @@ namespace sca {
     nonCoreFeatureSet,
     enumCharCountMismatch,
     enumToNonEnum,
+    invalidOperatorOmega,
   };
   struct Error {
     ErrorCode ec;

@@ -58,6 +58,7 @@ symbol as the actual word.
     -> e (~ _ ŋ);
     e -> (k _ t);
     -> i (t _ ~);
+    $(C:1|pa!=ve) -> $(C:1|ma=na) (_ ŋ);
 
     # This is an invalid rule, and ztš used to crash on it,
     # but now the validator catches it!
@@ -130,10 +131,16 @@ The `<number>` tag must be at least 1 if specified (0 is reserved for the
 default). Matchers with a `<number>` and without one cannot be mixed with
 each other.
 
-Constraints are written as `<feature>=<instance>`. In this case, the matcher
-will match only phonemes that have the correct instance of a feature. If
-there are multiple constraints, then all of them must be matched to return
-a match.
+Constraints are written as `<feature> <op> <instance>`, where:
+
+* `<feature>` is a feature name, obviously
+* `<op>` is either `=` or `!=` (only `=` is allowed in `<ω>`)
+* `<instance>` is the instance of the feature you want to match for
+  (or against)
+
+In this case, the matcher will match only phonemes that have the correct
+instance of a feature. If there are multiple constraints, then all of them
+must be matched to return a match.
 
 Enumerating matchers are also supported. Note that an enumerating matcher
 can backreference only to another enumerating matcher with the same number

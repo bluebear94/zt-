@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "Rule.h"
 #include "SCA.h"
 #include "Token.h"
 #include "errors.h"
@@ -25,6 +26,7 @@ namespace sca {
     const Token& getToken();
     const Token& peekToken();
     std::optional<Operator> parseOperator(Operator op);
+    std::optional<Comparison> parseComparison();
     std::optional<std::string> parseString();
     std::optional<size_t> parseNumber();
     std::optional<std::pair<Feature, PhonemesByFeature>> parseFeature();

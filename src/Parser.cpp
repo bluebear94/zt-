@@ -33,6 +33,15 @@ namespace sca {
     if (t.isOperator(op)) return op;
     return std::nullopt;
   }
+  std::optional<Comparison> Parser::parseComparison() {
+    const Token& t = getToken();
+    if (!t.is<Operator>()) return std::nullopt;
+    switch (t.as<Operator>()) {
+      case Operator::equals: return Comparison::eq;
+      case Operator::notEquals: return Comparison::ne;
+      default: return std::nullopt;
+    }
+  }
   std::optional<std::string> Parser::parseString() {
     const Token& t = getToken();
     return t.get<std::string>();
@@ -145,13 +154,14 @@ namespace sca {
     size_t id; Feature* feature;
     Error res = sca->getFeatureByName(*fname, id, feature);
     CHECK_ERROR_CODE(res);
-    REQUIRE_OPERATOR(Operator::equals)
+    std::optional<Comparison> cmp = parseComparison();
+    REQUIRE(cmp)
     std::optional<std::string> iname = parseString();
     REQUIRE(iname)
     size_t iid;
     res = feature->getFeatureInstanceByName(*iname, iid);
     CHECK_ERROR_CODE(res);
-    return CharMatcher::Constraint{ id, iid };
+    return CharMatcher::Constraint{ id, iid, *cmp };
   }
   std::optional<CharMatcher> Parser::parseMatcher() {
     // char_matcher := '$(' class [':' int] ['|' class_constraints] ')'

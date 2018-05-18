@@ -1,0 +1,35 @@
+Syntax:
+
+comments start with '#'
+
+statement := sound_change | feature_def | class_def
+
+sound_change := rule ['/' option+] [: pos+] ';'
+
+rule := simple_rule | compound_rule
+
+simple_rule := string '->' string ['(' env_string ')']
+
+compound_rule := '{' (simple_rule ';'* '}'
+
+string := char*
+
+char := phonemes | char_matcher
+
+char_matcher := '$(' class [':' int] ['|' class_constraints] ')'
+
+class_constraints := class_constraint | class_constraint ',' class_constraints
+
+class_constraint := feature_name op feature_instance
+
+op := '=' | '!='
+
+env_string := env_char*
+
+env_char := char | '~'
+
+feature_def := 'feature' feature_name ['*'] '{' feature_body* '}'
+
+feature_body := feature_instance ':' phoneme+ ';'
+
+class_def := 'class' class '=' phoneme+ ';'

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -21,18 +22,23 @@ namespace sca {
     bool hasClass(size_t cc) const { return charClass == cc; }
   };
   struct MChar;
+  enum class Comparison {
+    eq,
+    ne,
+  };
   struct CharMatcher {
     struct Constraint {
       size_t feature;
       size_t instance;
-      bool matches(size_t otherInstance) const {
-        return instance == otherInstance;
-      }
+      Comparison c;
+      bool matches(size_t otherInstance) const;
+      std::string toString(const SCA& sca) const;
     };
     size_t charClass;
     size_t index;
     std::variant<std::vector<Constraint>, std::vector<const PhonemeSpec*>>
     constraints;
+    std::string toString(const SCA& sca) const;
     bool hasConstraints() const {
       return std::holds_alternative<std::vector<Constraint>>(constraints);
     }

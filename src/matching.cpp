@@ -118,6 +118,7 @@ namespace sca {
         if (arg.hasConstraints()) {
           PhonemeSpec ps(*(it->second.ps));
           for (const CharMatcher::Constraint& con : arg.getConstraints()) {
+            assert(con.c == Comparison::eq);
             ps.setFeatureValue(con.feature, con.instance);
           }
           auto phrange = sca.getPhonemesBySpec(ps);
