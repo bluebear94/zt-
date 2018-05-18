@@ -1,0 +1,4 @@
+class X = a b c d e f g h i;
+
+b c -> f / rtl;
+d e -> g (a _ i) / rtl;
