@@ -43,3 +43,7 @@ e -> o !(t _ t);
 
 # Should give an error
 # $(C:1|ma=fr) -> $(C:1|oops=woah);
+
+# Enumerating matcher
+$(C:1/m,t)$(C:1/t,m) -> ŋ / loopsi;
+$(C:1/p,k) -> $(C:1/k,p) / loopsi;

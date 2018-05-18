@@ -70,6 +70,9 @@ symbol as the actual word.
     # An example of replacing when the environment is mismatched.
     e -> o !(t _ t);
 
+    # Enumerating matcher
+    $(C:1/p,k) -> $(C:1/k,p) / loopsi;
+
 #### Comments
 
 They start with `#` and last until the end of the line.
@@ -121,6 +124,7 @@ matched.
 Matchers take the following syntax:
 
     $(<class>[:<number>][|<constraint>(,<constraint>)*])
+    $(<class>[:<number>][/<phoneme>(,<phoneme>)*])
 
 The `<number>` tag must be at least 1 if specified (0 is reserved for the
 default). Matchers with a `<number>` and without one cannot be mixed with
@@ -130,6 +134,11 @@ Constraints are written as `<feature>=<instance>`. In this case, the matcher
 will match only phonemes that have the correct instance of a feature. If
 there are multiple constraints, then all of them must be matched to return
 a match.
+
+Enumerating matchers are also supported. Note that an enumerating matcher
+can backreference only to another enumerating matcher with the same number
+of phonemes listed, in which case the phoneme with the same index as the
+match is selected.
 
 Of course, matchers can be specified in `<ω>` as well. Such a matcher outputs
 the phoneme matched by the same matcher in one of `<α>`, `<λ>` or `<ρ>`
@@ -171,8 +180,6 @@ sound change and not its individual components.
 
 * The `[<Γ>]` you love from UDN is not supported yet. I'll probably embed
   a scripting language to support this in the future.
-* Enumerating matchers (UDN: C₁{p, t, k}) are not yet supported. Still
-  thinking about the syntax for this.
 * Ordered features (desirable for Middle Rymakonian phonorun reduction) are
   not yet supported.
 * Heck, why not add looping rules and such?

@@ -80,24 +80,23 @@ namespace sca {
             ps, owned, i);
           if (!itres.second) { // Already there; query current.
             auto it = itres.first;
-            // If we already remember this phoneme, does it match it in every
-            // feature we remember, other than the ones we tested?
-            const PhonemeSpec* rememberedPS = it->second.ps;
-            size_t nFeatures = std::max(
-              ps->featureValues.size(),
-              rememberedPS->featureValues.size());
-            for (size_t i = 0; i < nFeatures; ++i) {
-              size_t myval = ps->getFeatureValue(i, sca);
-              size_t remval = rememberedPS->getFeatureValue(i, sca);
-              if constexpr (std::is_same_v<U, std::vector<Constraint>>) {
-                for (const CharMatcher::Constraint& con : cons) {
-                  if (con.feature == i) goto ignore;
-                }
+            if constexpr (std::is_same_v<U, std::vector<Constraint>>) {
+              // If we already remember this phoneme, does it match it in every
+              // feature we remember, other than the ones we tested?
+              const PhonemeSpec* rememberedPS = it->second.ps;
+              size_t nFeatures = std::max(
+                ps->featureValues.size(),
+                rememberedPS->featureValues.size());
+              for (size_t i = 0; i < nFeatures; ++i) {
+                size_t myval = ps->getFeatureValue(i, sca);
+                size_t remval = rememberedPS->getFeatureValue(i, sca);
+                  for (const CharMatcher::Constraint& con : cons) {
+                    if (con.feature == i) goto ignore;
+                  }
+                if (myval != remval) return false;
+                ignore:;
               }
-              if (myval != remval) return false;
-              ignore:;
-            }
-            if constexpr (std::is_same_v<U, std::vector<PhonemeSpec*>>) {
+            } else {
               // If we have a matcher, then does the remembered index
               // correspond?
               size_t rememberedIndex = it->second.index;
@@ -130,7 +129,7 @@ namespace sca {
         } else {
           size_t index = it->second.index;
           assert(index != -1);
-          return *(arg.getEnumeration()[index]);
+          return arg.getEnumeration()[index]->name;
         }
       } else {
         return std::move(arg);

@@ -180,6 +180,19 @@ namespace sca {
         getToken();
       }
       matcher.constraints = std::move(constraints);
+    } else if (t.isOperator(Operator::slash)) {
+      getToken();
+      std::vector<const PhonemeSpec*> pses;
+      while (true) {
+        auto phoneme = parseString();
+        REQUIRE(phoneme)
+        auto it = sca->findOrInsertPhoneme(*phoneme);
+        pses.push_back(&(it->second));
+        const Token& t2 = peekToken();
+        if (!t2.isOperator(Operator::comma)) break;
+        getToken();
+      }
+      matcher.constraints = std::move(pses);
     }
     REQUIRE_OPERATOR(Operator::rb)
     return matcher;

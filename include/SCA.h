@@ -85,6 +85,13 @@ namespace sca {
     auto getPhonemesBySpec(const PhonemeSpec& ps) const {
       return phonemesReverse.equal_range(ps);
     }
+    auto findOrInsertPhoneme(const std::string& name) {
+      auto res = phonemes.try_emplace(name);
+      if (res.second) {
+        res.first->second.name = name;
+      }
+      return res.first;
+    }
     void verify(std::vector<Error>& errors) const;
     std::string apply(
       const std::string_view& st, const std::string& pos) const;
