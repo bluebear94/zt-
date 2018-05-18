@@ -16,7 +16,9 @@ namespace sca {
   };
   class MatchResult {
   public:
-    MatchResult(const PhonemeSpec* ps, bool owned) : ps(ps), owned(owned) {}
+    MatchResult(const PhonemeSpec* ps, bool owned, size_t index) :
+      ps(ps), owned(owned), index(index) {}
+    //MatchResult(const PhonemeSpec* ps, bool owned) : ps(ps), owned(owned) {}
     MatchResult(const MatchResult& mr) = delete;
     MatchResult(MatchResult&& mr) : ps(mr.ps), owned(mr.owned) {
       mr.ps = nullptr;
@@ -34,6 +36,7 @@ namespace sca {
     }
     const PhonemeSpec* ps;
     bool owned;
+    size_t index;
   };
   using MatchCapture = std::unordered_map<
     std::pair<size_t, size_t>,

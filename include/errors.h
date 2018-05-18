@@ -17,6 +17,8 @@ namespace sca {
     spacesWrong,
     undefinedMatcher,
     nonCoreFeatureSet,
+    enumCharCountMismatch,
+    enumToNonEnum,
   };
   struct Error {
     ErrorCode ec;

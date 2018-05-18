@@ -20,6 +20,7 @@ namespace sca {
     }
     bool hasClass(size_t cc) const { return charClass == cc; }
   };
+  struct MChar;
   struct CharMatcher {
     struct Constraint {
       size_t feature;
@@ -30,7 +31,23 @@ namespace sca {
     };
     size_t charClass;
     size_t index;
-    std::vector<Constraint> constraints;
+    std::variant<std::vector<Constraint>, std::vector<const PhonemeSpec*>>
+    constraints;
+    bool hasConstraints() const {
+      return std::holds_alternative<std::vector<Constraint>>(constraints);
+    }
+    std::vector<Constraint>& getConstraints() {
+      return std::get<std::vector<Constraint>>(constraints);
+    }
+    std::vector<const PhonemeSpec*>& getEnumeration() {
+      return std::get<std::vector<const PhonemeSpec*>>(constraints);
+    }
+    const std::vector<Constraint>& getConstraints() const {
+      return std::get<std::vector<Constraint>>(constraints);
+    }
+    const std::vector<const PhonemeSpec*>& getEnumeration() const {
+      return std::get<std::vector<const PhonemeSpec*>>(constraints);
+    }
   };
   struct Space {};
   struct MChar {

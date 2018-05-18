@@ -170,14 +170,16 @@ namespace sca {
     const Token& t = peekToken();
     if (t.isOperator(Operator::pipe)) {
       getToken();
+      std::vector<CharMatcher::Constraint> constraints;
       while (true) {
         auto constraint = parseMatcherConstraint();
         REQUIRE(constraint)
-        matcher.constraints.push_back(*constraint);
+        constraints.push_back(*constraint);
         const Token& t2 = peekToken();
         if (!t2.isOperator(Operator::comma)) break;
         getToken();
       }
+      matcher.constraints = std::move(constraints);
     }
     REQUIRE_OPERATOR(Operator::rb)
     return matcher;

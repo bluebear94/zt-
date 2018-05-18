@@ -171,32 +171,75 @@ namespace sca {
     bool hasUnlabelledMatchers = false;
     std::unordered_set<std::pair<size_t, size_t>, PHash<size_t, size_t>>
     defined; // Set of defined symbols
+    std::unordered_map<
+      std::pair<size_t, size_t>, size_t, PHash<size_t, size_t>>
+    enumCount; // Count of phonemes in enum matcher
     auto checkString = [&](const MString& st, bool write) {
       for (const MChar& c : st) {
         if (c.is<CharMatcher>()) {
           const CharMatcher& m = c.as<CharMatcher>();
+          auto p = std::pair(m.charClass, m.index);
           bool unlabelled = m.index == 0;
           if (unlabelled ? hasLabelledMatchers : hasUnlabelledMatchers)
             errors.push_back(Error(ErrorCode::mixedMatchers).at(line, col));
           (unlabelled ? hasUnlabelledMatchers : hasLabelledMatchers) = true;
+          auto verifyEnumCount = [&](auto iter) {
+            size_t count = iter->second;
+            if (count == -1) {
+              errors.push_back((ErrorCode::enumToNonEnum % (
+                sca.getClassByID(m.charClass).name + ":" +
+                std::to_string(m.index)
+              )).at(line, col));
+            } else if (count != m.getEnumeration().size()) {
+              errors.push_back((ErrorCode::enumCharCountMismatch % (
+                sca.getClassByID(m.charClass).name + ":" +
+                std::to_string(m.index)
+              )).at(line, col));
+            }
+          };
           if (write) {
-            defined.insert(std::pair(m.charClass, m.index));
+            // Record defined symbols
+            defined.insert(p);
+            if (m.hasConstraints()) {
+              enumCount.try_emplace(
+                p, -1);
+              // If already there, no need to check
+            } else {
+              auto res = enumCount.try_emplace(
+                p, m.getEnumeration().size());
+              // If already there, then check
+              if (!res.second) {
+                verifyEnumCount(res.first);
+              }
+            }
           } else {
             // Reject if not already defined...
-            if (defined.count(std::pair(m.charClass, m.index)) == 0) {
+            if (defined.count(p) == 0) {
               errors.push_back((ErrorCode::undefinedMatcher % (
                 sca.getClassByID(m.charClass).name + ":" +
                 std::to_string(m.index)
               )).at(line, col));
             }
             // ... or tries to set a non-core feature
-            for (const CharMatcher::Constraint& con : m.constraints) {
-              const auto& f = sca.getFeatureByID(con.feature);
-              if (!f.isCore) {
-                errors.push_back((ErrorCode::nonCoreFeatureSet % (
-                  f.featureName + "=" + f.instanceNames[con.instance]))
-                  .at(line, col));
+            if (m.hasConstraints()) {
+              for (const CharMatcher::Constraint& con : m.getConstraints()) {
+                const auto& f = sca.getFeatureByID(con.feature);
+                if (!f.isCore) {
+                  errors.push_back((ErrorCode::nonCoreFeatureSet % (
+                    f.featureName + "=" + f.instanceNames[con.instance]))
+                    .at(line, col));
+                }
               }
+            } else {
+              // ... or mismatches enum char count of a previous matcher
+              auto it = enumCount.find(p);
+              if (it == enumCount.end()) {
+                errors.push_back((ErrorCode::undefinedMatcher % (
+                  sca.getClassByID(m.charClass).name + ":" +
+                  std::to_string(m.index)
+                )).at(line, col));
+              }
+              verifyEnumCount(it);
             }
           }
         }

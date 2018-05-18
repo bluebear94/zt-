@@ -17,6 +17,8 @@ namespace sca {
     "Space character is not first in λ or last in ρ",
     "Matcher in ω that was not defined in α, λ or ρ",
     "Non-core feature changed in matcher in ω",
+    "Character count mismatch to a previous enumerating matcher",
+    "Enumerating matcher refers to previous non-enumerating matcher",
   };
   const char* stringError(ErrorCode ec) {
     int n = (int) ec;
