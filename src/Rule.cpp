@@ -118,11 +118,12 @@ namespace sca {
     return ipend;
   }
   // ------------------------------------------------------------------
-  std::optional<MSI> SimpleRule::tryReplaceLTR(
-      const SCA& sca, MString& str, MSI start) const {
+  std::optional<size_t> SimpleRule::tryReplaceLTR(
+      const SCA& sca, MString& str, size_t start) const {
     MatchCapture mc;
+    auto istart = str.begin() + start;
     auto match = matchesRule(
-      str.begin(), start, str.end(),
+      str.begin(), istart, str.end(),
       alpha.begin(), alpha.end(),
       lambda.begin(), lambda.end(),
       rho.begin(), rho.end(),
@@ -132,20 +133,22 @@ namespace sca {
     );
     if (!match) return std::nullopt;
     auto end = *match;
-    assert(end >= start);
+    assert(end >= istart);
+    size_t s = (size_t) (end - istart);
     // Now replace subrange
     MString omegaApp = omega;
     for (MChar& oc : omegaApp)
       oc = applyOmega(sca, std::move(oc), mc);
     replaceSubrange(
-      str, start, end, omegaApp.begin(), omegaApp.end());
-    return end;
+      str, istart, end, omegaApp.begin(), omegaApp.end());
+    return s;
   }
-  std::optional<MSRI> SimpleRule::tryReplaceRTL(
-      const SCA& sca, MString& str, MSRI start) const {
+  std::optional<size_t> SimpleRule::tryReplaceRTL(
+      const SCA& sca, MString& str, size_t start) const {
     MatchCapture mc;
+    auto istart = str.rbegin() + start;
     auto match = matchesRule(
-      str.rbegin(), start, str.rend(),
+      str.rbegin(), istart, str.rend(),
       alpha.rbegin(), alpha.rend(),
       rho.rbegin(), rho.rend(),
       lambda.rbegin(), lambda.rend(),
@@ -155,14 +158,15 @@ namespace sca {
     );
     if (!match) return std::nullopt;
     auto end = *match;
-    assert(end >= start);
+    assert(end >= istart);
+    size_t s = (size_t) (end - istart);
     // Now replace subrange
     MString omegaApp = omega;
     for (MChar& oc : omegaApp)
       oc = applyOmega(sca, std::move(oc), mc);
     replaceSubrange(
-      str, end.base(), start.base(), omegaApp.begin(), omegaApp.end());
-    return end;
+      str, end.base(), istart.base(), omegaApp.begin(), omegaApp.end());
+    return s;
   }
   void SimpleRule::verify(std::vector<Error>& errors, const SCA& sca) const {
     // A rule should not have both unlabelled and labelled matchers.
@@ -262,16 +266,16 @@ namespace sca {
       }
     }
   }
-  std::optional<MSI> CompoundRule::tryReplaceLTR(
-      const SCA& sca, MString& str, MSI start) const {
+  std::optional<size_t> CompoundRule::tryReplaceLTR(
+      const SCA& sca, MString& str, size_t start) const {
     for (const SimpleRule& sr : components) {
       auto res = sr.tryReplaceLTR(sca, str, start);
       if (res.has_value()) return *res;
     }
     return std::nullopt;
   }
-  std::optional<MSRI> CompoundRule::tryReplaceRTL(
-      const SCA& sca, MString& str, MSRI start) const {
+  std::optional<size_t> CompoundRule::tryReplaceRTL(
+      const SCA& sca, MString& str, size_t start) const {
     for (const SimpleRule& sr : components) {
       auto res = sr.tryReplaceRTL(sca, str, start);
       if (res.has_value()) return *res;

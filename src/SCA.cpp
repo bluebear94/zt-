@@ -44,20 +44,23 @@ namespace sca {
       const SCA& sca, MString& st, const std::string& pos) const {
     if (!poses.empty() && poses.count(pos) == 0) return;
     if (eo == EvaluationOrder::ltr) {
-      auto it = st.begin();
-      while (it != st.end()) {
-        auto res = rule->tryReplaceLTR(sca, st, it);
+      size_t i = 0;
+      // `<=` is intentional. We allow matching one character past the end
+      // to allow epenthesis rules such as the following:
+      // -> i (t _ ~);
+      while (i <= st.size()) {
+        auto res = rule->tryReplaceLTR(sca, st, i);
         if (res.has_value() && beh == Behaviour::once) break;
-        if (beh == Behaviour::loopnsi) it = *res;
-        else ++it;
+        if (beh == Behaviour::loopnsi) i += *res;
+        else ++i;
       }
     } else {
-      auto it = st.rbegin();
-      while (it != st.rend()) {
-        auto res = rule->tryReplaceRTL(sca, st, it);
+      size_t i = 0;
+      while (i <= st.size()) {
+        auto res = rule->tryReplaceRTL(sca, st, i);
         if (res.has_value() && beh == Behaviour::once) break;
-        if (beh == Behaviour::loopnsi) it = *res;
-        else ++it;
+        if (beh == Behaviour::loopnsi) i += *res;
+        else ++i;
       }
     }
   }

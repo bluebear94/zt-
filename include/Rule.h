@@ -77,28 +77,28 @@ namespace sca {
   class Rule {
   public:
     virtual ~Rule() {};
-    virtual std::optional<MSI> tryReplaceLTR(
-      const SCA& sca, MString& str, MSI start) const = 0;
-    virtual std::optional<MSRI> tryReplaceRTL(
-      const SCA& sca, MString& str, MSRI start) const = 0;
+    virtual std::optional<size_t> tryReplaceLTR(
+      const SCA& sca, MString& str, size_t start) const = 0;
+    virtual std::optional<size_t> tryReplaceRTL(
+      const SCA& sca, MString& str, size_t start) const = 0;
     virtual void verify(std::vector<Error>& errors, const SCA& sca) const {}
     size_t line = -1, col = -1;
   };
   struct SimpleRule : public Rule {
-    std::optional<MSI> tryReplaceLTR(
-      const SCA& sca, MString& str, MSI start) const override;
-    std::optional<MSRI> tryReplaceRTL(
-      const SCA& sca, MString& str, MSRI start) const override;
+    std::optional<size_t> tryReplaceLTR(
+      const SCA& sca, MString& str, size_t start) const override;
+    std::optional<size_t> tryReplaceRTL(
+      const SCA& sca, MString& str, size_t start) const override;
     void verify(std::vector<Error>& errors, const SCA& sca) const override;
     MString alpha, omega;
     MString lambda, rho;
     bool inv;
   };
   struct CompoundRule : public Rule {
-    std::optional<MSI> tryReplaceLTR(
-      const SCA& sca, MString& str, MSI start) const override;
-    std::optional<MSRI> tryReplaceRTL(
-      const SCA& sca, MString& str, MSRI start) const override;
+    std::optional<size_t> tryReplaceLTR(
+      const SCA& sca, MString& str, size_t start) const override;
+    std::optional<size_t> tryReplaceRTL(
+      const SCA& sca, MString& str, size_t start) const override;
     void verify(std::vector<Error>& errors, const SCA& sca) const override;
     std::vector<SimpleRule> components;
   };
