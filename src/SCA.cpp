@@ -80,12 +80,8 @@ namespace sca {
       for (const std::string& phoneme : phonemesInInstance) {
         PhonemeSpec& spec = phonemes[phoneme];
         spec.name = phoneme;
-        spec.featureValues.resize(oldFeatureCount + 1);
-        spec.featureValues[oldFeatureCount] = ii;
+        spec.setFeatureValue(oldFeatureCount, ii, *this);
       }
-    }
-    for (auto& p : phonemes) {
-      p.second.featureValues.resize(oldFeatureCount + 1);
     }
     return ErrorCode::ok;
   }

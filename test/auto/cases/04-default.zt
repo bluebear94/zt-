@@ -1,0 +1,12 @@
+class X = t k x s n v f m;
+
+feature test {
+  d: t k;
+  g*: x s;
+  p: n;
+  b: v;
+}
+
+# Replace only the first letter to make it easier on ourselves
+$(X:1|test=d) -> h (~ _);
+$(X:1|test=g) -> y (~ _);

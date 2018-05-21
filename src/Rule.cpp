@@ -14,6 +14,16 @@ namespace sca {
       featureValues[f] :
       sca.getFeatureByID(f).def;
   }
+  void PhonemeSpec::setFeatureValue(size_t f, size_t i, const SCA& sca) {
+    size_t os = featureValues.size();
+    if (f >= os) {
+      featureValues.resize(f + 1);
+      for (size_t i = os; i < f; ++i) {
+        featureValues[i] = sca.getFeatureByID(i).def;
+      }
+    }
+    featureValues[f] = i;
+  }
   bool CharMatcher::Constraint::matches(size_t otherInstance) const {
     switch (c) {
       case Comparison::eq: {

@@ -107,7 +107,7 @@ For now, a given phoneme can be in only one class.
 #### Feature declarations
 
     feature <feature-name> [*] {
-      <feature-instance>: <phoneme+>;
+      <feature-instance> [*]: <phoneme+>;
       # ...
     }
 
@@ -118,6 +118,9 @@ given feature will default to the first on the list.
 If `*` is present after the feature name, then the feature is marked as
 a non-core feature. This means that this feature will not factor into
 the identity of a phoneme.
+
+If `*` is present after a feature *instance* name, then that one is set as
+the default. At most one instance can be set as the default.
 
 #### Sound changes:
 

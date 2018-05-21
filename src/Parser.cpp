@@ -78,17 +78,25 @@ namespace sca {
     REQUIRE_OPERATOR(Operator::lcb)
     f.featureName = std::move(*name);
     PhonemesByFeature pbf;
+    size_t definst = -1;
+    size_t i = 0;
     while (true) {
       // Stop when we see a '}'
       const Token& t = peekToken();
       if (t.is<Operator>() && t.as<Operator>() == Operator::rcb) {
         getToken();
+        f.def = (definst == -1) ? 0 : definst;
         break;
       } else if (t.is<EndOfFile>()) return std::nullopt;
       // Otherwise, parse a line
       std::optional<std::string> iname = parseString();
       REQUIRE(iname)
       f.instanceNames.push_back(std::move(*iname));
+      if (const Token& t = peekToken(); t.isOperator(Operator::star)) {
+        getToken();
+        if (definst == -1) definst = i;
+        else return std::nullopt;
+      }
       REQUIRE_OPERATOR(Operator::colon)
       // Now for the phoneme names
       pbf.emplace_back();
@@ -107,6 +115,7 @@ namespace sca {
         pbfi.push_back(std::move(*phoneme));
         atLeastOne = true;
       }
+      ++i;
     }
     return std::pair(std::move(f), std::move(pbf));
   }

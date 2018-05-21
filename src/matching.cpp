@@ -120,7 +120,7 @@ namespace sca {
           for (const CharMatcher::Constraint& con : arg.getConstraints()) {
             assert(con.c == Comparison::eq);
             assert(con.instances.size() == 1);
-            ps.setFeatureValue(con.feature, con.instances[0]);
+            ps.setFeatureValue(con.feature, con.instances[0], sca);
           }
           auto phrange = sca.getPhonemesBySpec(ps);
           if (phrange.first == phrange.second) {

@@ -15,10 +15,7 @@ namespace sca {
     size_t charClass = -1;
     std::vector<size_t> featureValues;
     size_t getFeatureValue(size_t f, const SCA& sca) const;
-    void setFeatureValue(size_t f, size_t i) {
-      if (f >= featureValues.size()) featureValues.resize(f + 1);
-      featureValues[f] = i;
-    }
+    void setFeatureValue(size_t f, size_t i, const SCA& sca);
     bool hasClass(size_t cc) const { return charClass == cc; }
   };
   struct MChar;
