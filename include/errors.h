@@ -20,6 +20,7 @@ namespace sca {
     enumCharCountMismatch,
     enumToNonEnum,
     invalidOperatorOmega,
+    multipleInstancesOmega,
   };
   struct Error {
     ErrorCode ec;

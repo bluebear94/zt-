@@ -16,8 +16,14 @@ namespace sca {
   }
   bool CharMatcher::Constraint::matches(size_t otherInstance) const {
     switch (c) {
-      case Comparison::eq: return instance == otherInstance;
-      case Comparison::ne: return instance != otherInstance;
+      case Comparison::eq: {
+        auto it = std::find(instances.begin(), instances.end(), otherInstance);
+        return it != instances.end();
+      }
+      case Comparison::ne: {
+        auto it = std::find(instances.begin(), instances.end(), otherInstance);
+        return it == instances.end();
+      }
     }
   }
   std::string CharMatcher::toString(const SCA& sca) const {
@@ -28,7 +34,12 @@ namespace sca {
   };
   std::string CharMatcher::Constraint::toString(const SCA& sca) const {
     const auto& f = sca.getFeatureByID(feature);
-    return f.featureName + opNames[(int) c] + f.instanceNames[instance];
+    std::string s = f.featureName + opNames[(int) c];
+    for (size_t i = 0; i < instances.size(); ++i) {
+      if (i == 0) s += ' ';
+      s += f.instanceNames[instances[i]];
+    }
+    return s;
   }
   // ------------------------------------------------------------------
   template<typename T>
@@ -198,6 +209,7 @@ namespace sca {
       for (const MChar& c : st) {
         if (!c.is<CharMatcher>()) continue;
         const CharMatcher& m = c.as<CharMatcher>();
+        std::string asString = m.toString(sca);
         auto p = std::pair(m.charClass, m.index);
         bool unlabelled = m.index == 0;
         if (unlabelled ? hasLabelledMatchers : hasUnlabelledMatchers)
@@ -207,11 +219,11 @@ namespace sca {
           size_t count = iter->second;
           if (count == -1) {
             errors.push_back((ErrorCode::enumToNonEnum
-              % m.toString(sca))
+              % asString)
               .at(line, col));
           } else if (count != m.getEnumeration().size()) {
             errors.push_back((ErrorCode::enumCharCountMismatch
-              % m.toString(sca))
+              % asString)
               .at(line, col));
           }
         };
@@ -234,22 +246,30 @@ namespace sca {
           // Reject if not already defined...
           if (defined.count(p) == 0) {
             errors.push_back((ErrorCode::undefinedMatcher
-              % m.toString(sca))
+              % asString)
               .at(line, col));
           }
           // ... or tries to set a non-core feature,
           // or tries to use a comparison other than `==`
+          // or tries to set multiple instances of a feature
+          //   (though this could be a future extension?)
           if (m.hasConstraints()) {
             for (const CharMatcher::Constraint& con : m.getConstraints()) {
+              std::string cstring = con.toString(sca);
               const auto& f = sca.getFeatureByID(con.feature);
               if (!f.isCore) {
                 errors.push_back((ErrorCode::nonCoreFeatureSet
-                  % con.toString(sca))
+                  % cstring)
                   .at(line, col));
               }
               if (con.c != Comparison::eq) {
                 errors.push_back((ErrorCode::invalidOperatorOmega
-                  % con.toString(sca))
+                  % cstring)
+                  .at(line, col));
+              }
+              if (con.instances.size() != 1) {
+                errors.push_back((ErrorCode::multipleInstancesOmega
+                  % cstring)
                   .at(line, col));
               }
             }
@@ -258,7 +278,7 @@ namespace sca {
             auto it = enumCount.find(p);
             if (it == enumCount.end()) {
             errors.push_back((ErrorCode::undefinedMatcher
-              % m.toString(sca))
+              % asString)
               .at(line, col));
             }
             verifyEnumCount(it);

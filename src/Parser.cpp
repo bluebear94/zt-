@@ -156,12 +156,24 @@ namespace sca {
     CHECK_ERROR_CODE(res);
     std::optional<Comparison> cmp = parseComparison();
     REQUIRE(cmp)
-    std::optional<std::string> iname = parseString();
-    REQUIRE(iname)
-    size_t iid;
-    res = feature->getFeatureInstanceByName(*iname, iid);
-    CHECK_ERROR_CODE(res);
-    return CharMatcher::Constraint{ id, iid, *cmp };
+    CharMatcher::Constraint c;
+    c.feature = id;
+    c.c = *cmp;
+    bool atLeastOne = false;
+    // Read feature values
+    while (true) {
+      const Token& t = peekToken();
+      if (!t.is<std::string>()) {
+        if (atLeastOne) return std::move(c);
+        return std::nullopt;
+      }
+      getToken();
+      size_t iid;
+      res = feature->getFeatureInstanceByName(t.as<std::string>(), iid);
+      CHECK_ERROR_CODE(res);
+      c.instances.push_back(iid);
+      atLeastOne = true;
+    }
   }
   std::optional<CharMatcher> Parser::parseMatcher() {
     // char_matcher := '$(' class [':' int] ['|' class_constraints] ')'

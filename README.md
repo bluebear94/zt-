@@ -78,6 +78,23 @@ symbol as the actual word.
 
 They start with `#` and last until the end of the line.
 
+#### String literals
+
+A *string literal* is:
+
+* a series of bytes that are either letters in ASCII or non-ASCII bytes
+  (thereby allowing Unicode characters to be put in such a place), other than
+  the keywords `feature`, `class` or NOT
+* a series of characters other than `\` or `"`, or the escape sequences
+  `\\`, `\"` or `\n` (meaning what you expect them to mean), surrounded by
+  double quotes
+
+These are used in a lot of places, included as class or feature names,
+feature instances and phonemes.
+
+Note that sound change option names are not reserved words. For instance,
+it's perfectly legal to name a feature `ltr` or `loopsi`.
+
 #### Class declarations
 
     class <class-name> = <phoneme+>;
@@ -131,12 +148,17 @@ The `<number>` tag must be at least 1 if specified (0 is reserved for the
 default). Matchers with a `<number>` and without one cannot be mixed with
 each other.
 
-Constraints are written as `<feature> <op> <instance>`, where:
+Constraints are written as `<feature> <op> <instance+>`, where:
 
 * `<feature>` is a feature name, obviously
 * `<op>` is either `=` or `!=` (only `=` is allowed in `<ω>`)
-* `<instance>` is the instance of the feature you want to match for
-  (or against)
+* `<instance+>` is a list of one or more instances of the feature you want
+  to match for (or against). That is, if `<op>` is `=`, then the constraint
+  will match phonemes with that feature set to any of the instances listed.
+  If `<op>` is `!=`, then the constraint will match the phonemes with that
+  feature set to a value other than any of the instances listed. For instance,
+  `pa=lb av` will match phonemes with `pa` set to `lb` or `av`, while
+  `pa!=lb av` will match phonemes with `pa` set to anything else.
 
 In this case, the matcher will match only phonemes that have the correct
 instance of a feature. If there are multiple constraints, then all of them
@@ -192,5 +214,5 @@ sound change and not its individual components.
 * Heck, why not add looping rules and such?
 * Disjunction in environments is not yet supported. (Probably want this for
   all of `<α>`, `<λ>` and `<ρ>`.)
-* Disjunction in constraints is not yet supported.
-* Strings can contain only alphabetic and Unicode characters at this moment.
+* Disjunction in constraints is not yet supported in general (e. g. it's not
+  yet possible to match phonemes with, say, `pa=lb` or `ma=pl`).

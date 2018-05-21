@@ -29,7 +29,9 @@ namespace sca {
   struct CharMatcher {
     struct Constraint {
       size_t feature;
-      size_t instance;
+      // Could probably use unordered_set here, but we don't forsee
+      // any constraints that match lots of instances.
+      std::vector<size_t> instances;
       Comparison c;
       bool matches(size_t otherInstance) const;
       std::string toString(const SCA& sca) const;

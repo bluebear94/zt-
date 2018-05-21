@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 def stripLines(s):
-  return '\n'.join([l.strip() for l in s.splitlines()])
+  return [l.strip() + "\n" for l in s.splitlines()]
 
 casesDir = Path("test/auto/cases/")
 outputDir = Path("test/auto/output/")
@@ -25,24 +25,25 @@ for ztPath in allCases:
   output = outputDir / ("actual-" + caseName + ".txt")
   diffpath = outputDir / (caseName + ".diff")
   p = subprocess.run(["build/sca_e_kozet", str(ztPath), str(inp)],
-    stdout=subprocess.PIPE, encoding="utf8")
+    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf8")
   actualStr = p.stdout
   with output.open("w") as fh:
     fh.write(actualStr)
   with expout.open("r") as fh:
     expectedStr = fh.read(None)
-    expectedStr = stripLines(expectedStr)
-    actualStr = stripLines(actualStr)
-    if expectedStr != actualStr:
+    expectedLines = stripLines(expectedStr)
+    actualLines = stripLines(actualStr)
+    if expectedLines != actualLines:
       # fail
       print("Test {} failed".format(caseName), file=sys.stderr)
       nFail += 1
       diff = difflib.unified_diff(
-        expectedStr, actualStr,
+        expectedLines, actualLines,
         fromfile=str(expout), tofile=str(output))
-      print(diff, file=sys.stderr)
+      sdiff = ''.join(diff)
+      sys.stderr.write(sdiff)
       with diffpath.open("w") as fh:
-        fh.write(diff)
+        fh.write(sdiff)
     else:
       # pass
       print("Test {} passed".format(caseName), file=sys.stderr)

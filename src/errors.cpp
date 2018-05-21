@@ -20,6 +20,7 @@ namespace sca {
     "Character count mismatch to a previous enumerating matcher",
     "Enumerating matcher refers to previous non-enumerating matcher",
     "Constraint operator other than `==` in ω",
+    "Constraint in ω specifies multiple instances of a feature",
   };
   const char* stringError(ErrorCode ec) {
     int n = (int) ec;
