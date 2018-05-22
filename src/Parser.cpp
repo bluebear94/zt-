@@ -275,18 +275,19 @@ namespace sca {
       r.inv = true;
       t = &peekToken();
     }
-    if (t->isOperator(Operator::lb)) {
-      getToken();
+    if (!t->isOperator(Operator::lb)) return false;
+    getToken();
+    while (true) {
       std::optional<MString> lambda = parseString(true);
       if (!lambda.has_value()) return false;
       if (!parseOperator(Operator::placeholder).has_value()) return false;
       std::optional<MString> rho = parseString(true);
       if (!rho.has_value()) return false;
       r.envs.push_back({std::move(*lambda), std::move(*rho)});
-      if (!parseOperator(Operator::rb).has_value()) return false;
-      return true;
+      t = &getToken();
+      if (t->isOperator(Operator::rb)) return true;
+      if (!t->isOperator(Operator::envOr)) return false;
     }
-    return false;
   }
   std::optional<std::unique_ptr<SimpleRule>> Parser::parseSimpleRule() {
     // simple_rule := string '->' string env

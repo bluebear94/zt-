@@ -177,6 +177,9 @@ namespace sca {
     if (!amatch) return std::nullopt;
     Fwd ipend = *amatch;
     auto matchesEnv = [=, &sca, &mc]() -> bool {
+      // Special case: if there's no environment, then always pass
+      // the environment check
+      if (envs.empty()) return true;
       for (const auto& p : envs) {
         bool swap = IRev<Fwd>::shouldSwapLR;
         const auto& lambda = swap ? p.second : p.first;
@@ -185,18 +188,18 @@ namespace sca {
         CFwd lend = IRev<Fwd>::cend(lambda);
         CFwd rstart = IRev<Fwd>::cbegin(rho);
         CFwd rend = IRev<Fwd>::cend(rho);
-        if (!matchesPattern(
+        bool matchesLeft = matchesPattern(
             reverseIterator(ipoint), reverseIterator(istart),
             reverseIterator(lend), reverseIterator(lstart),
-            sca, mc))
-          return false;
-        if (!matchesPattern(
+            sca, mc).has_value();
+        bool matchesRight = matchesPattern(
             ipend, iend,
             rstart, rend,
-            sca, mc))
-          return false;
+            sca, mc).has_value();
+        if (matchesLeft && matchesRight)
+          return true;
       }
-      return true;
+      return false; // none matched
     };
     if (matchesEnv() == envInverted) return std::nullopt;
     return ipend;

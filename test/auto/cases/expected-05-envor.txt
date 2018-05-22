@@ -1,0 +1,11 @@
+bab -> beb
+cag -> ceg
+daf -> def
+caf -> caf
+dag -> dag
+cagdaf -> cegdaf
+big -> bog
+gig -> gig
+did -> did
+gid -> god
+dig -> dog

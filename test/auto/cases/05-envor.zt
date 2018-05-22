@@ -1,0 +1,5 @@
+class C = a b c d e f g i o;
+
+a -> e (b _ b);
+a -> e (c _ g || d _ f);
+i -> o !(g _ g || d _ d);
