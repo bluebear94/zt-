@@ -19,14 +19,28 @@ non-retarded operating system.
 (Protip: `cmake . -DCMAKE_BUILD_TYPE=Debug` builds a debug build and
 `cmake . -DCMAKE_BUILD_TYPE=Release` builds a release build.)
 
+You need Boost (for `filesystem`) installed as well.
+
 ### Usage
 
-    sca_e_kozet <input.zt> <words.txt>
+    Usage:
+      %s [-f <formatter>] <script.zt> [words.txt]
 
-`<input.zt>` is a script in the ztš language. `<words.txt>` is a list of words
-separated by newlines. If a line has a `#`, then the part after the `#` will
-be passed as the *part-of-speech* parameter, leaving the part before the
-symbol as the actual word.
+      * <script.zt>: a path to a ztš script to apply to the words
+      * <words.txt>: a path to a file of newline-separated words, or stdin
+          if omitted. If a '#' is found on a line, the substring after it
+          will be passed as the part of speech, while the actual word is
+          truncated before the '#'.
+      * -f, --format <formatter>: a format string for the output:
+        * %a: the input word, without the part of speech
+        * %o: the output word
+        * %p: the part of speech
+        * %?*[...]: prints the string inside the square brackets if a predicate
+          is true (given by whatever * is):
+          * p: part of speech present
+          * P: part of speech absent
+      
+    See README.md for documentation on the ztš language.
 
 ### The ztš language
 
