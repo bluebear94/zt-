@@ -91,12 +91,46 @@ namespace sca {
     static auto get(It it) {
       return std::reverse_iterator<It>(it);
     }
+    template<typename T>
+    static It begin(const std::vector<T>& v) {
+      return v.begin();
+    }
+    template<typename T>
+    static It end(const std::vector<T>& v) {
+      return v.end();
+    }
+    template<typename T>
+    static auto cbegin(const std::vector<T>& v) {
+      return v.cbegin();
+    }
+    template<typename T>
+    static auto cend(const std::vector<T>& v) {
+      return v.cend();
+    }
+    static inline bool shouldSwapLR = false;
   };
   template<typename It>
   struct IRev<std::reverse_iterator<It>> {
     static auto get(std::reverse_iterator<It> it) {
       return it.base();
     }
+    template<typename T>
+    static std::reverse_iterator<It> begin(const std::vector<T>& v) {
+      return v.rbegin();
+    }
+    template<typename T>
+    static std::reverse_iterator<It> end(const std::vector<T>& v) {
+      return v.rend();
+    }
+    template<typename T>
+    static auto cbegin(const std::vector<T>& v) {
+      return v.crbegin();
+    }
+    template<typename T>
+    static auto cend(const std::vector<T>& v) {
+      return v.crend();
+    }
+    static inline bool shouldSwapLR = true;
   };
   template<typename It>
   auto reverseIterator(It it) {
@@ -134,8 +168,7 @@ namespace sca {
   static std::optional<Fwd> matchesRule(
     Fwd istart, Fwd ipoint, Fwd iend, // text start / search start / text end
     CFwd astart, CFwd aend, // alpha
-    CFwd lstart, CFwd lend, // lambda
-    CFwd rstart, CFwd rend, // rho
+    const std::vector<std::pair<MString, MString>>& envs, // envs
     bool envInverted, // Match if environment is NOT matched (vs matched)?
     const SCA& sca,
     MatchCapture& mc
@@ -144,12 +177,26 @@ namespace sca {
     if (!amatch) return std::nullopt;
     Fwd ipend = *amatch;
     auto matchesEnv = [=, &sca, &mc]() -> bool {
-      if (!matchesPattern(
-          reverseIterator(ipoint), reverseIterator(istart),
-          reverseIterator(lend), reverseIterator(lstart),
-          sca, mc))
-        return false;
-      return matchesPattern(ipend, iend, rstart, rend, sca, mc).has_value();
+      for (const auto& p : envs) {
+        bool swap = IRev<Fwd>::shouldSwapLR;
+        const auto& lambda = swap ? p.second : p.first;
+        const auto& rho = swap ? p.first : p.second;
+        CFwd lstart = IRev<Fwd>::cbegin(lambda);
+        CFwd lend = IRev<Fwd>::cend(lambda);
+        CFwd rstart = IRev<Fwd>::cbegin(rho);
+        CFwd rend = IRev<Fwd>::cend(rho);
+        if (!matchesPattern(
+            reverseIterator(ipoint), reverseIterator(istart),
+            reverseIterator(lend), reverseIterator(lstart),
+            sca, mc))
+          return false;
+        if (!matchesPattern(
+            ipend, iend,
+            rstart, rend,
+            sca, mc))
+          return false;
+      }
+      return true;
     };
     if (matchesEnv() == envInverted) return std::nullopt;
     return ipend;
@@ -162,8 +209,7 @@ namespace sca {
     auto match = matchesRule(
       str.begin(), istart, str.end(),
       alpha.begin(), alpha.end(),
-      lambda.begin(), lambda.end(),
-      rho.begin(), rho.end(),
+      envs,
       inv,
       sca,
       mc
@@ -187,8 +233,7 @@ namespace sca {
     auto match = matchesRule(
       str.rbegin(), istart, str.rend(),
       alpha.rbegin(), alpha.rend(),
-      rho.rbegin(), rho.rend(),
-      lambda.rbegin(), lambda.rend(),
+      envs,
       inv,
       sca,
       mc
@@ -297,21 +342,25 @@ namespace sca {
       }
     };
     checkString(alpha, true);
-    checkString(rho, true);
-    checkString(lambda, true);
-    checkString(omega, false);
-    for (size_t i = 1; i < lambda.size(); ++i) {
-      if (lambda[i].is<Space>()) {
-        errors.push_back(Error(ErrorCode::spacesWrong).at(line, col));
-      }
-    }
-    if (rho.size() > 0) {
-      for (size_t i = 0; i < rho.size() - 1; ++i) {
-        if (rho[i].is<Space>()) {
+    for (const auto& p : envs) {
+      const auto& lambda = p.first;
+      const auto& rho = p.second;
+      checkString(lambda, true);
+      checkString(rho, true);
+      for (size_t i = 1; i < lambda.size(); ++i) {
+        if (lambda[i].is<Space>()) {
           errors.push_back(Error(ErrorCode::spacesWrong).at(line, col));
         }
       }
+      if (rho.size() > 0) {
+        for (size_t i = 0; i < rho.size() - 1; ++i) {
+          if (rho[i].is<Space>()) {
+            errors.push_back(Error(ErrorCode::spacesWrong).at(line, col));
+          }
+        }
+      }
     }
+    checkString(omega, false);
   }
   std::optional<size_t> CompoundRule::tryReplaceLTR(
       const SCA& sca, MString& str, size_t start) const {

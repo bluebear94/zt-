@@ -282,8 +282,7 @@ namespace sca {
       if (!parseOperator(Operator::placeholder).has_value()) return false;
       std::optional<MString> rho = parseString(true);
       if (!rho.has_value()) return false;
-      r.lambda = std::move(*lambda);
-      r.rho = std::move(*rho);
+      r.envs.push_back({std::move(*lambda), std::move(*rho)});
       if (!parseOperator(Operator::rb).has_value()) return false;
       return true;
     }
@@ -303,8 +302,7 @@ namespace sca {
     bool res = parseEnvironment(*r);
     if (!res) {
       index = oldIndex;
-      r->lambda.clear();
-      r->rho.clear();
+      r->envs.clear();
       r->inv = false;
     }
     return std::move(r);

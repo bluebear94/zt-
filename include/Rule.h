@@ -96,7 +96,7 @@ namespace sca {
       const SCA& sca, MString& str, size_t start) const override;
     void verify(std::vector<Error>& errors, const SCA& sca) const override;
     MString alpha, omega;
-    MString lambda, rho;
+    std::vector<std::pair<MString, MString>> envs;
     bool inv;
   };
   struct CompoundRule : public Rule {

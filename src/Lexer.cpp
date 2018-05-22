@@ -64,11 +64,19 @@ namespace sca {
       case '=': RETURN_OP(Operator::equals);
       case ':': RETURN_OP(Operator::colon);
       case ';': RETURN_OP(Operator::semicolon);
-      case '|': RETURN_OP(Operator::pipe);
       case '_': RETURN_OP(Operator::placeholder);
       case '~': RETURN_OP(Operator::boundary);
       case '/': RETURN_OP(Operator::slash);
       case '*': RETURN_OP(Operator::star);
+      case '|': {
+        Cursor temp = cursor;
+        int d = cursor.read();
+        if (d == '|') {
+          RETURN_OP(Operator::envOr);
+        }
+        cursor = temp;
+        RETURN_OP(Operator::pipe);
+      }
       case '!': {
         Cursor temp = cursor;
         int d = cursor.read();

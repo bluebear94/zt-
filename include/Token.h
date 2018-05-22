@@ -27,6 +27,7 @@ namespace sca {
     slash,
     star,
     bang,
+    envOr,
     notEquals,
     kwFeature,
     kwClass,
