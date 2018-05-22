@@ -16,24 +16,29 @@
 
 namespace fs = boost::filesystem;
 
-const char* defaultFormat = "%a%?p[#]%p -> %o";
+const char* defaultFormat = "%A%?p[#]%P -> %O";
 
 const char* usage = R".(Usage:
-  %s [-f <formatter>] <script.zt> [words.txt]
+  %s [options...] <script.zt> [words.txt]
 
   * <script.zt>: a path to a ztš script to apply to the words
   * <words.txt>: a path to a file of newline-separated words, or stdin
       if omitted. If a '#' is found on a line, the substring after it
       will be passed as the part of speech, while the actual word is
       truncated before the '#'.
-  * -f, --format <formatter>: a format string for the output:
-    * %a: the input word, without the part of speech
-    * %o: the output word
-    * %p: the part of speech
-    * %?*[...]: prints the string inside the square brackets if a predicate
+  * -f, --format <formatter=%%A%%?p[#]%%P -> %%O>: a format string for the output:
+    * %%%%: a literal '%%' sign
+    * %%a: the input word, without the part of speech
+    * %%o: the output word
+    * %%p: the part of speech
+    * %%?*[...]: prints the string inside the square brackets if a predicate
       is true (given by whatever * is):
       * p: part of speech present
       * P: part of speech absent
+  * -e, --escape <chars=\>: list characters to escape when outputting from %%a,
+    %%o or %%p in the formatter. These specifiers then precede any instances
+    of those characters. This is intended to produce output that other
+    programs can parse unambiguously; it does not handle Unicode properly.
   
 See README.md for documentation on the ztš language.
 ).";
@@ -42,6 +47,7 @@ struct Config {
   const char* script = nullptr;
   const char* words = nullptr;
   const char* format = defaultFormat;
+  const char* escapes = "\\";
 };
 
 void parse(Config& c, int argc, char** argv) {
@@ -54,19 +60,23 @@ void parse(Config& c, int argc, char** argv) {
       switch (arg[1]) {
         case '-': {
           if (strcmp(arg + 2, "format") == 0) mode = 1;
+          else if (strcmp(arg + 2, "escape") == 0) mode = 1;
           else mode = -1;
           break;
         }
         case 'f': mode = 1; break;
+        case 'e': mode = 2; break;
         default: mode = -1; break;
       }
     }
     if (mode == 1) {
       char* fmter = *(w++);
       if (fmter == nullptr) mode = -1;
-      else {
-        c.format = fmter;
-      }
+      else c.format = fmter;
+    } else if (mode == 2) {
+      char* escapes = *(w++);
+      if (escapes == nullptr) mode = -1;
+      else c.escapes = escapes;
     } else if (mode == 0) {
       switch (pos++) {
         case 0: c.script = arg; break;
@@ -79,27 +89,49 @@ void parse(Config& c, int argc, char** argv) {
       exit(1);
     }
   }
+  if (pos < 1) {
+    fprintf(stderr, usage, argv[0]);
+    exit(1);
+  }
+}
+
+std::string escape(const std::string_view& s, const char* escapes) {
+  std::string res;
+  for (char c : s) {
+    if (strchr(escapes, c) != nullptr) res += '\\';
+    res += c;
+  }
+  return res;
 }
 
 std::string format(
     const char* pattern,
-    const char* a, const char* o,
-    const char* p) {
+    const std::string_view& a, const std::string_view& o,
+    const std::string_view& p,
+    const char* escapes) {
   std::string res;
+  std::string ae = escape(a, escapes);
+  std::string oe = escape(o, escapes);
+  std::string pe = escape(p, escapes);
   const char* w = pattern;
   while (*w != '\0') {
-    if (*w != '%') res += *w;
-    else switch (char opt = *(++w)) {
-      case 'a': res += a; break;
-      case 'o': res += o; break;
-      case 'p': res += p; break;
+    if (*w != '%') {
+      res += *w;
+    } else switch (char opt = *(++w)) {
+      case '%': res += '%'; break;
+      case 'a': res += ae; break;
+      case 'o': res += oe; break;
+      case 'p': res += pe; break;
+      case 'A': res += a; break;
+      case 'O': res += o; break;
+      case 'P': res += p; break;
       case '?': {
         char c = *(++w);
         bool predKnown = true;
         bool pred = false;
         switch (c) {
-          case 'p': pred = (*p) != '\0'; break;
-          case 'P': pred = (*p) == '\0'; break;
+          case 'p': pred = !p.empty(); break;
+          case 'P': pred = p.empty(); break;
           default: predKnown = false;
         }
         if (predKnown && *(++w) == '[') {
@@ -107,7 +139,6 @@ std::string format(
             if (*w == '\0') {
               std::cerr << "Unclosed conditional " << *w << "\n";
             }
-            if (pred) res += *w;
           }
         } else {
           std::cerr << "Unknown condition " << c << "\n";
@@ -152,7 +183,7 @@ int main(int argc, char** argv) {
   if (!errors.empty()) return 1;
   mysca.reversePhonemeMap();
   std::istream* wfh = (c.words != nullptr) ?
-    new std::fstream(argv[2]) : &(std::cin);
+    new std::fstream(c.words) : &(std::cin);
   std::string line;
   while (!wfh->eof()) {
     std::getline(*wfh, line);
@@ -165,7 +196,8 @@ int main(int argc, char** argv) {
     }
     std::string output = mysca.apply(line, pos);
     std::cout
-      << format(c.format, line.c_str(), output.c_str(), pos.c_str())
+      << format(
+        c.format, line, output, pos, c.escapes)
       << "\n";
   }
   if (c.words != nullptr) delete wfh;

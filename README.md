@@ -23,24 +23,8 @@ You need Boost (for `filesystem`) installed as well.
 
 ### Usage
 
-    Usage:
-      %s [-f <formatter>] <script.zt> [words.txt]
-
-      * <script.zt>: a path to a ztš script to apply to the words
-      * <words.txt>: a path to a file of newline-separated words, or stdin
-          if omitted. If a '#' is found on a line, the substring after it
-          will be passed as the part of speech, while the actual word is
-          truncated before the '#'.
-      * -f, --format <formatter>: a format string for the output:
-        * %a: the input word, without the part of speech
-        * %o: the output word
-        * %p: the part of speech
-        * %?*[...]: prints the string inside the square brackets if a predicate
-          is true (given by whatever * is):
-          * p: part of speech present
-          * P: part of speech absent
-      
-    See README.md for documentation on the ztš language.
+Run the program with literally anything that isn't a valid input to see the
+usage for the command.
 
 ### The ztš language
 
