@@ -51,7 +51,7 @@ namespace sca {
       while (i <= st.size()) {
         auto res = rule->tryReplaceLTR(sca, st, i);
         if (res.has_value() && beh == Behaviour::once) break;
-        if (beh == Behaviour::loopnsi) i += *res;
+        if (beh == Behaviour::loopnsi && res.has_value()) i += *res;
         else ++i;
       }
     } else {
@@ -59,7 +59,7 @@ namespace sca {
       while (i <= st.size()) {
         auto res = rule->tryReplaceRTL(sca, st, i);
         if (res.has_value() && beh == Behaviour::once) break;
-        if (beh == Behaviour::loopnsi) i += *res;
+        if (beh == Behaviour::loopnsi && res.has_value()) i += *res;
         else ++i;
       }
     }

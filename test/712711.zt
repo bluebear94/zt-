@@ -117,3 +117,4 @@ $(C:1|ma=lf)l -> $(C:1) / loopnsi : n;
 $(C:1|whistled=y)l -> $(C:1|ma=lf,whistled=n) / loopnsi : n;
 $(C:1|ma=af)l -> $(C:1) / loopnsi : n;
 $(C:1)l -> $(C:1|sart=phar) / loopnsi : n;
+ʔ -> k / loopnsi : v;
