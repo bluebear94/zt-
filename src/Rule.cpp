@@ -37,6 +37,41 @@ namespace sca {
       }
     }
   }
+  using MatchSet = std::unordered_set<
+      std::pair<std::size_t, std::size_t>,
+      PHash<std::size_t, std::size_t>>;
+  static MatchSet getAllMatchers(const MString& s);
+  static MatchSet getCommonMatchers(const Alternation& alt) {
+    if (alt.options.empty()) return MatchSet(); // nothing in common
+    MatchSet common = getAllMatchers(alt.options[0]);
+    for (size_t i = 1; i < alt.options.size(); ++i) {
+      auto there = getAllMatchers(alt.options[i]);
+      MatchSet intersect;
+      for (const auto& p : common) {
+        if (there.find(p) != there.end()) intersect.insert(p);
+      }
+      common = std::move(intersect);
+    }
+    return common;
+  }
+  static MatchSet getAllMatchers(const MString& s) {
+    MatchSet common;
+    for (const MChar& ch : s) {
+      std::visit([&](const auto& arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, CharMatcher>) {
+          common.insert(std::pair(arg.charClass, arg.index));
+        } else if constexpr (std::is_same_v<T, Alternation>) {
+          auto there = getCommonMatchers(arg);
+          for (const auto& p : there) common.insert(p);
+        } else if constexpr (std::is_same_v<T, Repeat>) {
+          auto there = getAllMatchers(arg.s);
+          for (const auto& p : there) common.insert(p);
+        }
+      }, ch.value);
+    }
+    return common;
+  }
   std::string CharMatcher::toString(const SCA& sca) const {
     return sca.getClassByID(charClass).name + ":" + std::to_string(index);
   }
@@ -321,6 +356,11 @@ namespace sca {
       std::pair<size_t, size_t>, size_t, PHash<size_t, size_t>>
     enumCount; // Count of phonemes in enum matcher
     auto checkString = [&](const MString& st, bool write) {
+      if (write) {
+        auto used = getAllMatchers(st);
+        // Record defined symbols
+        for (const auto& p : used) defined.insert(p);
+      }
       for (const MChar& c : st) {
         if (!write && !c.isSingleCharacter()) {
           errors.push_back(Error(ErrorCode::nonSingleCharInOmega)
@@ -347,8 +387,6 @@ namespace sca {
           }
         };
         if (write) {
-          // Record defined symbols
-          defined.insert(p);
           if (m.hasConstraints()) {
             enumCount.try_emplace(
               p, -1);

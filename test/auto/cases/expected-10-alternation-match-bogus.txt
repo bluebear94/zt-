@@ -1,0 +1,1 @@
+SCA error: Matcher in ω that was not defined in α, λ or ρ (#11): C:1 at line 18, column 3
