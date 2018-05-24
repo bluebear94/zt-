@@ -1,0 +1,18 @@
+class C = p f m t s l n k x ŋ h;
+class V = a e i o u;
+
+feature pa {
+  lb: p f m;
+  av: t s l n;
+  ve: k x ŋ;
+  gl: h;
+}
+
+feature ma {
+  pl: p t k;
+  fr: f s x h;
+  la: l;
+  na: m n ŋ;
+}
+
+$(C:1|pa=lb) $(C:2|ma=pl) -> $(C:1|pa=C:2);

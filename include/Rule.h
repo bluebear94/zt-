@@ -6,10 +6,16 @@
 #include <variant>
 #include <vector>
 
+#include "PHash.h"
 #include "errors.h"
 
 namespace sca {
   class SCA;
+  class MatchResult;
+  using MatchCapture = std::unordered_map<
+    std::pair<size_t, size_t>,
+    MatchResult,
+    PHash<size_t, size_t>>;
   struct PhonemeSpec {
     std::string name;
     size_t charClass = -1;
@@ -30,13 +36,16 @@ namespace sca {
   };
   struct CharMatcher {
     struct Constraint {
+      using IV = std::variant<size_t, std::pair<size_t, size_t>>;
       size_t feature;
       // Could probably use unordered_set here, but we don't forsee
       // any constraints that match lots of instances.
-      std::vector<size_t> instances;
+      std::vector<IV> instances;
       Comparison c;
-      bool matches(size_t otherInstance) const;
+      bool matches(
+        size_t otherInstance, const MatchCapture& mc, const SCA& sca) const;
       std::string toString(const SCA& sca) const;
+      size_t evaluate(size_t i, const MatchCapture& mc, const SCA& sca) const;
     };
     size_t charClass;
     size_t index;

@@ -25,19 +25,36 @@ namespace sca {
     }
     featureValues[f] = i;
   }
-  bool CharMatcher::Constraint::matches(size_t inst) const {
+  size_t CharMatcher::Constraint::evaluate(
+      size_t i, const MatchCapture& mc, const SCA& sca) const {
+    return std::visit([&](const auto& arg) {
+      using T = std::decay_t<decltype(arg)>;
+      if constexpr (std::is_same_v<T, size_t>) return arg;
+      else {
+        auto it = mc.find(arg);
+        assert(it != mc.end());
+        return it->second.ps->getFeatureValue(feature, sca);
+      }
+    }, instances[i]);
+  }
+  bool CharMatcher::Constraint::matches(
+      size_t inst, const MatchCapture& mc, const SCA& sca) const {
+    std::vector<size_t> itrans(instances.size());
+    for (size_t i = 0; i < instances.size(); ++i) {
+      itrans[i] = evaluate(i, mc, sca);
+    }
     switch (c) {
       case Comparison::eq: {
-        auto it = std::find(instances.begin(), instances.end(), inst);
-        return it != instances.end();
+        auto it = std::find(itrans.begin(), itrans.end(), inst);
+        return it != itrans.end();
       }
       case Comparison::ne: {
-        auto it = std::find(instances.begin(), instances.end(), inst);
-        return it == instances.end();
+        auto it = std::find(itrans.begin(), itrans.end(), inst);
+        return it == itrans.end();
       }
       #define CMPCASE(name, op) \
         case Comparison::name: { \
-          return std::all_of(instances.begin(), instances.end(), \
+          return std::all_of(itrans.begin(), itrans.end(), \
             [inst](size_t o) { \
               return inst op o; \
             }); \
@@ -96,7 +113,16 @@ namespace sca {
     std::string s = f.featureName + opNames[(int) c];
     for (size_t i = 0; i < instances.size(); ++i) {
       if (i != 0) s += ' ';
-      s += f.instanceNames[instances[i]];
+      std::visit([&](const auto& arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, size_t>) {
+          s += f.instanceNames[arg];
+        } else {
+          s += sca.getClassByID(arg.first).name;
+          s += ':';
+          s += std::to_string(arg.second);
+        }
+      }, instances[i]);
     }
     return s;
   }

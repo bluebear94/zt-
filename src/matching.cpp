@@ -66,7 +66,7 @@ namespace sca {
           if constexpr (std::is_same_v<U, std::vector<Constraint>>) {
             // Should match all constraints.
             for (const CharMatcher::Constraint& con : cons) {
-              if (!con.matches(ps->getFeatureValue(con.feature, sca)))
+              if (!con.matches(ps->getFeatureValue(con.feature, sca), mc, sca))
                 return false;
             }
           } else {
@@ -126,7 +126,7 @@ namespace sca {
           for (const CharMatcher::Constraint& con : arg.getConstraints()) {
             assert(con.c == Comparison::eq);
             assert(con.instances.size() == 1);
-            ps.setFeatureValue(con.feature, con.instances[0], sca);
+            ps.setFeatureValue(con.feature, con.evaluate(0, mc, sca), sca);
           }
           auto phrange = sca.getPhonemesBySpec(ps);
           if (phrange.first == phrange.second) {
