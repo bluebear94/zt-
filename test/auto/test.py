@@ -8,8 +8,10 @@ import sys
 def stripLines(s):
   return [l.strip() + "\n" for l in s.splitlines()]
 
-casesDir = Path("test/auto/cases/")
-outputDir = Path("test/auto/output/")
+execPath = sys.argv[1]
+testDir = Path(sys.argv[2])
+casesDir = testDir / "auto/cases"
+outputDir = testDir / "auto/output"
 
 outputDir.mkdir(parents=True, exist_ok=True)
 
@@ -24,7 +26,7 @@ for ztPath in allCases:
   expout = casesDir / ("expected-" + caseName + ".txt")
   output = outputDir / ("actual-" + caseName + ".txt")
   diffpath = outputDir / (caseName + ".diff")
-  p = subprocess.run(["build/sca_e_kozet", str(ztPath), str(inp)],
+  p = subprocess.run([execPath, str(ztPath), str(inp)],
     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding="utf8")
   actualStr = p.stdout
   with output.open("w") as fh:

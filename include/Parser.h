@@ -40,8 +40,11 @@ namespace sca {
     std::optional<std::unique_ptr<CompoundRule>> parseCompoundRule();
     std::optional<std::unique_ptr<Rule>> parseRule();
     std::optional<SoundChange> parseSoundChange();
+    bool parseCharSimple(MString& m, bool allowSpaces);
+    void parseAlternation(MString& m, bool allowSpaces);
     bool parseChar(MString& m, bool allowSpaces);
     std::optional<MString> parseString(bool allowSpaces);
+    void parseStringNoAlt(MString& m, bool allowSpaces);
     void printLineColumn();
   };
 }

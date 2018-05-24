@@ -8,19 +8,30 @@ sound_change := rule ['/' option+] [: pos+] ';'
 
 rule := simple_rule | compound_rule
 
-simple_rule := string '->' string ['(' env_string ')']
+simple_rule := string '->' string ['(' env_string (| env_string)* ')']
 
 compound_rule := '{' (simple_rule ';'* '}'
 
-string := char*
+string := alternation
 
-char := phonemes | char_matcher
+string_noalt := char*
 
-char_matcher := '$(' class [':' int] ['|' class_constraints] ')'
+char := grouping | simple_char
+
+grouping := '[' string ']'
+
+alternation := string_noalt ('|' string_noalt)*
+
+simple_char := phonemes | char_matcher
+
+char_matcher := '$(' class [':' int]
+  ['|' class_constraints | '/' enumeration] ')'
 
 class_constraints := class_constraint | class_constraint ',' class_constraints
 
-class_constraint := feature_name op feature_instance
+class_constraint := feature_name op feature_instance*
+
+enumeration = phoneme (',' phoneme)*
 
 op := '=' | '!='
 

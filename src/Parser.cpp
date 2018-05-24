@@ -228,7 +228,7 @@ namespace sca {
     REQUIRE_OPERATOR(Operator::rb)
     return matcher;
   }
-  bool Parser::parseChar(MString& m, bool allowSpaces) {
+  bool Parser::parseCharSimple(MString& m, bool allowSpaces) {
     // char := phonemes | char_matcher
     // (or possibly space ['#'])
     size_t oldIndex = index;
@@ -254,9 +254,36 @@ namespace sca {
     }
     return false;
   }
-  std::optional<MString>
-  Parser::parseString(bool allowSpaces) {
-    MString m;
+  void Parser::parseAlternation(MString& m, bool allowSpaces) {
+    std::vector<MString> opts;
+    while (true) {
+      MString m2;
+      parseStringNoAlt(m2, allowSpaces);
+      opts.push_back(std::move(m2));
+      const Token& t = peekToken();
+      if (!t.isOperator(Operator::pipe)) {
+        if (opts.size() == 1) { // Needed beccause ω can't output alternations
+          for (auto&& e : opts[0]) m.push_back(std::move(e));
+        } else {
+          Alternation a = {std::move(opts)};
+          m.push_back(std::move(a));
+        }
+        return;
+      }
+      getToken();
+    }
+  }
+  bool Parser::parseChar(MString& m, bool allowSpaces) {
+    const Token& t = peekToken();
+    if (t.isOperator(Operator::lsb)) {
+      getToken();
+      parseAlternation(m, allowSpaces);
+      if (!parseOperator(Operator::rsb)) return false;
+      return true;
+    }
+    return parseCharSimple(m, allowSpaces);
+  }
+  void Parser::parseStringNoAlt(MString& m, bool allowSpaces) {
     while (true) {
       size_t oldIndex = index;
       bool s = parseChar(m, allowSpaces);
@@ -265,6 +292,11 @@ namespace sca {
         break;
       }
     }
+  }
+  std::optional<MString>
+  Parser::parseString(bool allowSpaces) {
+    MString m;
+    parseAlternation(m, allowSpaces);
     return std::move(m);
   }
   bool Parser::parseEnvironment(SimpleRule& r) {

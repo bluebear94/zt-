@@ -21,6 +21,11 @@ non-retarded operating system.
 
 You need Boost (for `filesystem`) installed as well.
 
+`make atest` runs the tests. If you're hacking on ztš, then:
+
+* make sure to run the tests whenever you change the code
+* make sure you add tests for new features
+
 ### Usage
 
 Run the program with literally anything that isn't a valid input to see the
@@ -136,6 +141,7 @@ zero or more of the following:
 * a matcher
 * in `<λ>` or `<ρ>`, a word boundary marker (`~`) is also allowed at the
   beginning or end, respectively
+* an alternation: `a|b|c` will match either `a` or `b` or `c`.
 
 If the `!` is present, then the rule applies when the environment is not
 matched.
@@ -168,7 +174,9 @@ must be matched to return a match.
 Enumerating matchers are also supported. Note that an enumerating matcher
 can backreference only to another enumerating matcher with the same number
 of phonemes listed, in which case the phoneme with the same index as the
-match is selected.
+match is selected. *NB: enumerating matchers can be thought of as a special
+case of alternation, but faster (no backing up the list of matcher matches)
+and legal in `<ω>`.*
 
 Of course, matchers can be specified in `<ω>` as well. Such a matcher outputs
 the phoneme matched by the same matcher in one of `<α>`, `<λ>` or `<ρ>`
@@ -216,4 +224,5 @@ sound change and not its individual components.
 * Disjunction in environments is not yet supported. (Probably want this for
   all of `<α>`, `<λ>` and `<ρ>`.)
 * Disjunction in constraints is not yet supported in general (e. g. it's not
-  yet possible to match phonemes with, say, `pa=lb` or `ma=pl`).
+  yet possible to match phonemes with, say, `pa=lb` or `ma=pl`). This can
+  probably be done with alternation.

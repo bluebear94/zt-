@@ -1,0 +1,6 @@
+class X = a b c d e f g h i j k l m x y z;
+
+[l] -> [m] / loopnsi;
+a | c -> x / loopnsi;
+bd | e -> y / loopnsi;
+[g | h] f -> z / loopnsi;

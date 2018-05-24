@@ -322,6 +322,10 @@ namespace sca {
     enumCount; // Count of phonemes in enum matcher
     auto checkString = [&](const MString& st, bool write) {
       for (const MChar& c : st) {
+        if (!write && !c.isSingleCharacter()) {
+          errors.push_back(Error(ErrorCode::nonSingleCharInOmega)
+            .at(line, col));
+        }
         if (!c.is<CharMatcher>()) continue;
         const CharMatcher& m = c.as<CharMatcher>();
         std::string asString = m.toString(sca);
