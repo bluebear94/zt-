@@ -16,7 +16,13 @@ string := alternation
 
 string_noalt := char*
 
-char := grouping | simple_char
+char := char_without_repeat ['+' | '*' | '?' | repeat_n]
+
+repeat_n := '{' repeat_n_inner '}'
+
+repeat_n_inner := number [',' [number]]
+
+char_without_repeat := grouping | simple_char
 
 grouping := '[' string ']'
 

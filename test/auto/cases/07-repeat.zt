@@ -1,0 +1,8 @@
+class X = a b c d e f g h i j k l m v w x y z;
+
+nospace{2} -> hello / loopnsi;
+[group]{2} -> hello / loopnsi;
+c a* -> z / loopnsi; # require a 'c' as to not get stuck in a loop
+b+ -> y / loopnsi;
+e d? -> x / loopnsi;
+f g{2, 4} h -> w / loopnsi;

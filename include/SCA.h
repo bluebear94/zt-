@@ -3,6 +3,7 @@
 #include <limits.h>
 #include <stddef.h>
 
+#include <deque>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -106,5 +107,9 @@ namespace sca {
       PhonemeSpec, std::string, PSHash, PSEqual> phonemesReverse;
   };
   void splitIntoPhonemes(
-    const SCA& sca, const std::string_view s, MString& phonemes);
+    const SCA& sca, const std::string_view s,
+    MString& phonemes);
+  void splitIntoPhonemes(
+    const SCA& sca, const std::string_view s,
+    std::deque<std::string>& phonemes);
 }

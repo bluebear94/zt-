@@ -68,6 +68,8 @@ namespace sca {
       case '~': RETURN_OP(Operator::boundary);
       case '/': RETURN_OP(Operator::slash);
       case '*': RETURN_OP(Operator::star);
+      case '+': RETURN_OP(Operator::plus);
+      case '?': RETURN_OP(Operator::question);
       case '|': {
         Cursor temp = cursor;
         int d = cursor.read();

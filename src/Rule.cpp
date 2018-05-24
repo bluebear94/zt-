@@ -176,7 +176,7 @@ namespace sca {
           if (it >= iend) break; // Passed the end; can't match anymore
           if (nCopies > arg.max) break; // Can't match more copies
           auto matchEnd = matchesPattern(
-            istart, iend,
+            it, iend,
             IRev<Fwd>::cbegin(arg.s), IRev<Fwd>::cend(arg.s),
             sca, mc
           );
@@ -184,7 +184,7 @@ namespace sca {
           ++nCopies; // Otherwise, record success and prepare for next
           it = *matchEnd;
         }
-        if (nCopies < arg.min) return std::nullopt;
+        if (nCopies < arg.min || nCopies > arg.max) return std::nullopt;
         return it;
       } else {
         std::cerr << "matchesMChar: We missed a case!\n";

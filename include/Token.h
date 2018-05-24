@@ -28,6 +28,8 @@ namespace sca {
     star,
     bang,
     envOr,
+    plus,
+    question,
     notEquals,
     kwFeature,
     kwClass,

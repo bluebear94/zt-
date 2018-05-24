@@ -1,6 +1,7 @@
 #include "Parser.h"
 
 #include <iostream>
+#include <limits>
 #include <string_view>
 
 #include "Lexer.h"
@@ -29,6 +30,7 @@ namespace sca {
       ", column " << (peekToken().col + 1) << "\n";
   }
   std::optional<Operator> Parser::parseOperator(Operator op) {
+    if (!reservePhonemes.empty()) return std::nullopt;
     const Token& t = getToken();
     if (t.isOperator(op)) return op;
     return std::nullopt;
@@ -43,10 +45,12 @@ namespace sca {
     }
   }
   std::optional<std::string> Parser::parseString() {
+    if (!reservePhonemes.empty()) return std::nullopt;
     const Token& t = getToken();
     return t.get<std::string>();
   }
   std::optional<size_t> Parser::parseNumber() {
+    if (!reservePhonemes.empty()) return std::nullopt;
     const Token& t = getToken();
     return t.get<size_t>();
   }
@@ -231,11 +235,19 @@ namespace sca {
   bool Parser::parseCharSimple(MString& m, bool allowSpaces) {
     // char := phonemes | char_matcher
     // (or possibly space ['#'])
+    if (!reservePhonemes.empty()) {
+      m.push_back(std::move(reservePhonemes.front()));
+      reservePhonemes.pop_front();
+      return true;
+    }
     size_t oldIndex = index;
     std::optional<std::string> phonemes = parseString();
     if (phonemes.has_value()) {
       // handle phonemes case
-      splitIntoPhonemes(*sca, *phonemes, m);
+      splitIntoPhonemes(*sca, *phonemes, reservePhonemes);
+      if (reservePhonemes.empty()) return false;
+      m.push_back(std::move(reservePhonemes.front()));
+      reservePhonemes.pop_front();
       return true;
     }
     index = oldIndex;
@@ -253,6 +265,41 @@ namespace sca {
       }
     }
     return false;
+  }
+  std::optional<std::pair<size_t, size_t>> Parser::parseRepeaterInner() {
+    constexpr size_t SIZE_T_MAX = std::numeric_limits<size_t>::max();
+    std::optional<size_t> m = parseNumber();
+    REQUIRE(m)
+    const Token& t = peekToken();
+    if (!t.isOperator(Operator::comma)) return std::pair(*m, *m);
+    getToken();
+    const Token& t2 = peekToken();
+    if (!t2.is<size_t>()) return std::pair(*m, SIZE_T_MAX);
+    size_t n = t2.as<size_t>();
+    getToken();
+    return std::pair(*m, n);
+  }
+  std::optional<std::pair<size_t, size_t>> Parser::parseRepeater() {
+    constexpr size_t SIZE_T_MAX = std::numeric_limits<size_t>::max();
+    size_t oldIndex = index;
+    const Token& t = getToken();
+    if (!t.is<Operator>()) goto rek;
+    switch (t.as<Operator>()) {
+      case Operator::star: return std::pair(0, SIZE_T_MAX);
+      case Operator::plus: return std::pair(1, SIZE_T_MAX);
+      case Operator::question: return std::pair(0, 1);
+      case Operator::lcb: {
+        auto res = parseRepeaterInner();
+        if (!res.has_value()) goto rek;
+        const Token& t2 = getToken();
+        if (!t2.isOperator(Operator::rcb)) goto rek;
+        return res;
+      }
+      default: {}
+    }
+    rek:
+    index = oldIndex;
+    return std::nullopt;
   }
   void Parser::parseAlternation(MString& m, bool allowSpaces) {
     std::vector<MString> opts;
@@ -273,7 +320,7 @@ namespace sca {
       getToken();
     }
   }
-  bool Parser::parseChar(MString& m, bool allowSpaces) {
+  bool Parser::parseCharNoRep(MString& m, bool allowSpaces) {
     const Token& t = peekToken();
     if (t.isOperator(Operator::lsb)) {
       getToken();
@@ -282,6 +329,20 @@ namespace sca {
       return true;
     }
     return parseCharSimple(m, allowSpaces);
+  }
+  bool Parser::parseChar(MString& m, bool allowSpaces) {
+    size_t os = m.size();
+    bool res = parseCharNoRep(m, allowSpaces);
+    if (!res) return false;
+    size_t charsRead = m.size() - os;
+    auto repeater = parseRepeater();
+    if (!repeater.has_value()) return true;
+    std::vector<MChar> s(charsRead);
+    std::move(m.begin() + os, m.end(), s.begin());
+    m.resize(os + 1);
+    Repeat r = { std::move(s), repeater->first, repeater->second };
+    m.back() = std::move(r);
+    return true;
   }
   void Parser::parseStringNoAlt(MString& m, bool allowSpaces) {
     while (true) {

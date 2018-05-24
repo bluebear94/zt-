@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 
+#include <deque>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -20,6 +21,7 @@ namespace sca {
     bool parse();
   private:
     std::vector<Token> tokens;
+    std::deque<std::string> reservePhonemes;
     size_t index = 0;
     Lexer* l;
     SCA* sca;
@@ -43,8 +45,11 @@ namespace sca {
     bool parseCharSimple(MString& m, bool allowSpaces);
     void parseAlternation(MString& m, bool allowSpaces);
     bool parseChar(MString& m, bool allowSpaces);
+    bool parseCharNoRep(MString& m, bool allowSpaces);
     std::optional<MString> parseString(bool allowSpaces);
     void parseStringNoAlt(MString& m, bool allowSpaces);
+    std::optional<std::pair<size_t, size_t>> parseRepeaterInner();
+    std::optional<std::pair<size_t, size_t>> parseRepeater();
     void printLineColumn();
   };
 }

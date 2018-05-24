@@ -142,6 +142,13 @@ zero or more of the following:
 * in `<λ>` or `<ρ>`, a word boundary marker (`~`) is also allowed at the
   beginning or end, respectively
 * an alternation: `a|b|c` will match either `a` or `b` or `c`.
+* any of the above, plus a repetition modifier:
+  * `*` matches zero or more
+  * `?` matches zero or one
+  * `+` matches one or more
+  * `{<m>}` matches `<m>` exactly
+  * `{<m>,}` matches `<m>` or more
+  * `{<m>, <n>}` matches at least `<m>` but at most `<n>`
 
 If the `!` is present, then the rule applies when the environment is not
 matched.
@@ -221,8 +228,6 @@ sound change and not its individual components.
 * Ordered features (desirable for Middle Rymakonian phonorun reduction) are
   not yet supported.
 * Heck, why not add looping rules and such?
-* Disjunction in environments is not yet supported. (Probably want this for
-  all of `<α>`, `<λ>` and `<ρ>`.)
 * Disjunction in constraints is not yet supported in general (e. g. it's not
   yet possible to match phonemes with, say, `pa=lb` or `ma=pl`). This can
   probably be done with alternation.

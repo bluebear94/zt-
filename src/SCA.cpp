@@ -5,8 +5,10 @@
 #include "utf8.h"
 
 namespace sca {
+  template<typename T>
   void splitIntoPhonemes(
-      const SCA& sca, const std::string_view s, MString& phonemes) {
+      const SCA& sca, const std::string_view s,
+      T& phonemes) {
     size_t ei = s.length();
     if (ei == 0) return;
     const PhonemeSpec* ps = nullptr;
@@ -30,6 +32,16 @@ namespace sca {
       phonemes.push_back(std::string(s.substr(0, pos)));
       splitIntoPhonemes(sca, s.substr(pos), phonemes);
     }
+  }
+  void splitIntoPhonemes(
+      const SCA& sca, const std::string_view s,
+      std::vector<MChar>& phonemes) {
+    splitIntoPhonemes<std::vector<MChar>>(sca, s, phonemes);
+  }
+  void splitIntoPhonemes(
+      const SCA& sca, const std::string_view s,
+      std::deque<std::string>& phonemes) {
+    splitIntoPhonemes<std::deque<std::string>>(sca, s, phonemes);
   }
   // I hope features with lots of instances aren't that common.
   Error Feature::getFeatureInstanceByName(
