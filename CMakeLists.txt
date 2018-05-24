@@ -23,6 +23,7 @@ SET(SOURCES
   src/errors.cpp
   src/matching.cpp
   src/Rule.cpp
+  src/verify_rule.cpp
 )
 
 ADD_EXECUTABLE(sca_e_kozet ${SOURCES})
