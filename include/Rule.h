@@ -19,6 +19,7 @@ namespace sca {
     bool hasClass(size_t cc) const { return charClass == cc; }
   };
   struct MChar;
+  using MString = std::vector<MChar>;
   enum class Comparison {
     eq,
     ne,
@@ -55,16 +56,34 @@ namespace sca {
     }
   };
   struct Space {};
+  struct Alternation {
+    std::vector<MString> options;
+  };
+  struct Repeat {
+    MString s;
+    size_t min, max;
+  };
   struct MChar {
     MChar() {}
     MChar(std::string&& s) : value(std::move(s)) {}
     MChar(CharMatcher&& c) : value(std::move(c)) {}
     MChar(Space s) : value(s) {}
     MChar(PhonemeSpec&& ps) : value(std::move(ps)) {}
-    MChar(const std::string& s) : value(s) {}
-    MChar(const CharMatcher& c) : value(c) {}
-    MChar(const PhonemeSpec& ps) : value(ps) {}
-    std::variant<std::string, CharMatcher, Space, PhonemeSpec> value;
+    MChar(Alternation&& a) : value(std::move(a)) {}
+    MChar(Repeat&& r) : value(std::move(r)) {}
+    explicit MChar(const std::string& s) : value(s) {}
+    explicit MChar(const CharMatcher& c) : value(c) {}
+    explicit MChar(const PhonemeSpec& ps) : value(ps) {}
+    explicit MChar(const Alternation& a) : value(a) {}
+    explicit MChar(const Repeat& r) : value(r) {}
+    std::variant<
+      std::string,
+      CharMatcher,
+      Space,
+      PhonemeSpec,
+      Alternation,
+      Repeat
+    > value;
     template<typename T>
     bool is() const { return std::holds_alternative<T>(value); }
     template<typename T>
@@ -75,8 +94,11 @@ namespace sca {
     bool isT(const T& s) const {
       return is<T>() && as<T>() == s;
     }
+    bool isSingleCharacter() const {
+      return is<std::string>() || is<CharMatcher>() || is<Space>() ||
+        is<PhonemeSpec>();
+    }
   };
-  using MString = std::vector<MChar>;
   using MSI = typename MString::iterator;
   using MSRI = typename MString::reverse_iterator;
   class Rule {

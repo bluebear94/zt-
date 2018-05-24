@@ -19,7 +19,8 @@ namespace sca {
     MatchResult(const PhonemeSpec* ps, bool owned, size_t index) :
       ps(ps), owned(owned), index(index) {}
     //MatchResult(const PhonemeSpec* ps, bool owned) : ps(ps), owned(owned) {}
-    MatchResult(const MatchResult& mr) = delete;
+    MatchResult(const MatchResult& mr) :
+      ps(new PhonemeSpec(*mr.ps)), owned(true) {}
     MatchResult(MatchResult&& mr) : ps(mr.ps), owned(mr.owned) {
       mr.ps = nullptr;
       mr.owned = false;

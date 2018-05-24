@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include <algorithm>
+#include <iostream>
 #include <unordered_set>
 
 #include "SCA.h"
@@ -136,6 +137,62 @@ namespace sca {
   auto reverseIterator(It it) {
     return IRev<It>::get(it);
   }
+  template<typename Fwd>
+  static std::optional<Fwd> matchesMChar(
+    Fwd istart, Fwd iend,
+    const MChar& ruleChar,
+    const SCA& sca,
+    MatchCapture& mc
+  ) {
+    if (ruleChar.isSingleCharacter()) {
+      if (istart == iend) return std::nullopt;
+      bool match = charsMatch(sca, ruleChar, *istart, mc);
+      if (match) return istart + 1;
+      else return std::nullopt;
+    }
+    // Does not necessarily match one and only one.
+    return std::visit([&](const auto& arg) -> std::optional<Fwd> {
+      using T = std::decay_t<decltype(arg)>;
+      if constexpr (std::is_same_v<T, Alternation>) {
+        // Try each option in succession and pick the first one that works
+        for (const MString& opt : arg.options) {
+          // Back up the MatchCapture, in case this option fails
+          MatchCapture mcback(mc);
+          auto it = matchesPattern(
+            istart, iend,
+            IRev<Fwd>::cbegin(opt), IRev<Fwd>::cend(opt),
+            sca, mc
+          );
+          if (it.has_value()) { // Success!
+            return *it;
+          }
+          mc = mcback; // Restore
+        }
+        return std::nullopt;
+      } else if constexpr (std::is_same_v<T, Repeat>) {
+        size_t nCopies = 0;
+        Fwd it = istart;
+        while (true) {
+          if (it >= iend) break; // Passed the end; can't match anymore
+          if (nCopies > arg.max) break; // Can't match more copies
+          auto matchEnd = matchesPattern(
+            istart, iend,
+            IRev<Fwd>::cbegin(arg.s), IRev<Fwd>::cend(arg.s),
+            sca, mc
+          );
+          if (!matchEnd.has_value()) break; // No match
+          ++nCopies; // Otherwise, record success and prepare for next
+          it = *matchEnd;
+        }
+        if (nCopies < arg.min) return std::nullopt;
+        return it;
+      } else {
+        std::cerr << "matchesMChar: We missed a case!\n";
+        abort();
+        return std::nullopt;
+      }
+    }, ruleChar.value);
+  }
   // If the pattern matches the text at the start point, return the iterator
   // to the end of the match. Otherwise, return std::nullopt.
   template<typename Fwd, typename CFwd
@@ -158,10 +215,10 @@ namespace sca {
         return std::nullopt;
       }
       const auto& inRule = *rit;
-      const auto& inText = *iit;
-      if (!charsMatch(sca, inRule, inText, mc)) return std::nullopt;
-      ++iit;
+      auto matchEnd = matchesMChar(iit, iend, inRule, sca, mc);
+      if (!matchEnd.has_value()) return std::nullopt;
       ++rit;
+      iit = *matchEnd;
     }
   }
   template<typename Fwd, typename CFwd>

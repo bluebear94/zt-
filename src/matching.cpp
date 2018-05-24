@@ -1,7 +1,9 @@
 #include "matching.h"
 
 #include <assert.h>
+#include <stdlib.h>
 
+#include <iostream>
 #include <iterator>
 
 #include "Rule.h"
@@ -20,7 +22,7 @@ namespace sca {
         const PhonemeSpec* ps;
         Error err = sca.getPhonemeByName(arg, ps);
         if (err != ErrorCode::ok) return c;
-        return *ps;
+        return MChar(*ps);
       } else {
         return c;
       }
@@ -106,6 +108,10 @@ namespace sca {
           }
           return true;
         }, arg.constraints);
+      } else {
+        std::cerr << "charsMatch: Type is not single character\n";
+        abort();
+        return false;
       }
     }, fr.value);
   }
@@ -127,11 +133,11 @@ namespace sca {
             // Return an anonymous phoneme spec
             return ps;
           }
-          return phrange.first->second;
+          return MChar(phrange.first->second);
         } else {
           size_t index = it->second.index;
           assert(index != -1);
-          return arg.getEnumeration()[index]->name;
+          return MChar(arg.getEnumeration()[index]->name);
         }
       } else {
         return std::move(arg);
