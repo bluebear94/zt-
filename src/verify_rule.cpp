@@ -98,10 +98,6 @@ namespace sca {
         }
       }
     } else {
-      // ... or tries to set a non-core feature,
-      // or tries to use a comparison other than `==`
-      // or tries to set multiple instances of a feature
-      //   (though this could be a future extension?)
       if (!m.hasConstraints()) {
         // ... or mismatches enum char count of a previous matcher
         auto it = ctx.enumCount.find(p);
@@ -154,6 +150,10 @@ namespace sca {
                 }
               }
               // If in omega, follows certain rules?
+              // * can't set a non-core feature
+              // * can't use a comparison other than `==`
+              // * can't set multiple instances of a feature
+              //   (though this could be a future extension?)
               if (!write) {
                 const auto& f = sca.getFeatureByID(con.feature);
                 if (!f.isCore) {
