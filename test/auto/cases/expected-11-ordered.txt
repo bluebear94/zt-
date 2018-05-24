@@ -1,0 +1,16 @@
+in -> in
+fn -> fn
+bn -> vn
+an -> vn
+ko -> wo
+ho -> ho
+co -> co
+go -> go
+lp -> lp
+jp -> xp
+dp -> xp
+ap -> xp
+iq -> yq
+fq -> yq
+eq -> eq
+gq -> gq

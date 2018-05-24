@@ -1,0 +1,4 @@
+SCA error: Ordered constraint operator on unordered feature (#18): roundness>little at line 12, column 3
+SCA error: Ordered constraint operator on unordered feature (#18): roundness<little at line 13, column 3
+SCA error: Ordered constraint operator on unordered feature (#18): roundness>=little at line 14, column 3
+SCA error: Ordered constraint operator on unordered feature (#18): roundness<=little at line 15, column 3

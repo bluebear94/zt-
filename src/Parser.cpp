@@ -41,6 +41,10 @@ namespace sca {
     switch (t.as<Operator>()) {
       case Operator::equals: return Comparison::eq;
       case Operator::notEquals: return Comparison::ne;
+      case Operator::lt: return Comparison::lt;
+      case Operator::gt: return Comparison::gt;
+      case Operator::le: return Comparison::le;
+      case Operator::ge: return Comparison::ge;
       default: return std::nullopt;
     }
   }
@@ -79,6 +83,11 @@ namespace sca {
       f.isCore = false;
       getToken();
     } else f.isCore = true;
+    const Token& ordered = peekToken();
+    if (ordered.isOperator(Operator::kwOrdered)) {
+      f.ordered = true;
+      getToken();
+    } else f.ordered = false;
     REQUIRE_OPERATOR(Operator::lcb)
     f.featureName = std::move(*name);
     PhonemesByFeature pbf;

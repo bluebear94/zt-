@@ -23,6 +23,10 @@ namespace sca {
   enum class Comparison {
     eq,
     ne,
+    lt,
+    gt,
+    le,
+    ge,
   };
   struct CharMatcher {
     struct Constraint {

@@ -31,8 +31,13 @@ namespace sca {
     plus,
     question,
     notEquals,
+    lt,
+    gt,
+    le,
+    ge,
     kwFeature,
     kwClass,
+    kwOrdered,
   };
   struct Token {
     Token() : contents(EndOfFile()) {}

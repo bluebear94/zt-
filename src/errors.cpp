@@ -22,6 +22,7 @@ namespace sca {
     "Constraint operator other than `==` in ω",
     "Constraint in ω specifies multiple instances of a feature",
     "Alternation or repetition found in ω",
+    "Ordered constraint operator on unordered feature",
   };
   const char* stringError(ErrorCode ec) {
     int n = (int) ec;

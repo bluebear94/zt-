@@ -25,16 +25,27 @@ namespace sca {
     }
     featureValues[f] = i;
   }
-  bool CharMatcher::Constraint::matches(size_t otherInstance) const {
+  bool CharMatcher::Constraint::matches(size_t inst) const {
     switch (c) {
       case Comparison::eq: {
-        auto it = std::find(instances.begin(), instances.end(), otherInstance);
+        auto it = std::find(instances.begin(), instances.end(), inst);
         return it != instances.end();
       }
       case Comparison::ne: {
-        auto it = std::find(instances.begin(), instances.end(), otherInstance);
+        auto it = std::find(instances.begin(), instances.end(), inst);
         return it == instances.end();
       }
+      #define CMPCASE(name, op) \
+        case Comparison::name: { \
+          return std::all_of(instances.begin(), instances.end(), \
+            [inst](size_t o) { \
+              return inst op o; \
+            }); \
+        }
+      CMPCASE(lt, <)
+      CMPCASE(gt, >)
+      CMPCASE(le, <=)
+      CMPCASE(ge, >=)
     }
   }
   using MatchSet = std::unordered_set<
@@ -77,12 +88,14 @@ namespace sca {
   }
   static const char* opNames[] = {
     "=", "!=",
+    "<", ">",
+    "<=", ">="
   };
   std::string CharMatcher::Constraint::toString(const SCA& sca) const {
     const auto& f = sca.getFeatureByID(feature);
     std::string s = f.featureName + opNames[(int) c];
     for (size_t i = 0; i < instances.size(); ++i) {
-      if (i == 0) s += ' ';
+      if (i != 0) s += ' ';
       s += f.instanceNames[instances[i]];
     }
     return s;
@@ -439,6 +452,18 @@ namespace sca {
               .at(line, col));
             }
             verifyEnumCount(it);
+          }
+        }
+        if (m.hasConstraints()) {
+          for (const CharMatcher::Constraint& con : m.getConstraints()) {
+            std::string cstring = con.toString(sca);
+            const Feature& f = sca.getFeatureByID(con.feature);
+            if (!f.ordered &&
+                con.c != Comparison::eq && con.c != Comparison::ne) {
+              errors.push_back(
+                (ErrorCode::orderedConstraintUnorderedFeature % cstring)
+                .at(line, col));
+            }
           }
         }
       }

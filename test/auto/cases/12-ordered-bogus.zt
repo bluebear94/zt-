@@ -1,0 +1,15 @@
+class X = a b c d e f g h i j k l;
+class Y = v w x y;
+class Z = n o p q;
+
+feature roundness { # of the letters :P
+  none: i k l;
+  little: f h j;
+  some: b c d e;
+  lots: a g;
+}
+
+$(X:1|roundness>little) -> v (_ n) / loopnsi;
+$(X:1|roundness<little) -> w (_ o) / loopnsi;
+$(X:1|roundness>=little) -> x (_ p) / loopnsi;
+$(X:1|roundness<=little) -> y (_ q) / loopnsi;

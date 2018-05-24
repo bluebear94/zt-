@@ -70,6 +70,20 @@ namespace sca {
       case '*': RETURN_OP(Operator::star);
       case '+': RETURN_OP(Operator::plus);
       case '?': RETURN_OP(Operator::question);
+      case '<': {
+        Cursor temp = cursor;
+        int d = cursor.read();
+        if (d == '=') RETURN_OP(Operator::le);
+        cursor = temp;
+        RETURN_OP(Operator::lt);
+      }
+      case '>': {
+        Cursor temp = cursor;
+        int d = cursor.read();
+        if (d == '=') RETURN_OP(Operator::ge);
+        cursor = temp;
+        RETURN_OP(Operator::gt);
+      }
       case '|': {
         Cursor temp = cursor;
         int d = cursor.read();
@@ -146,6 +160,7 @@ namespace sca {
           if (s == "feature") t.contents = Operator::kwFeature;
           else if (s == "class") t.contents = Operator::kwClass;
           else if (s == "NOT") t.contents = Operator::bang;
+          else if (s == "ordered") t.contents = Operator::kwOrdered;
           else t.contents = std::move(s);
           return t;
         } else if (isdigit(c)) {

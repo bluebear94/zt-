@@ -45,7 +45,7 @@ env_string := env_char*
 
 env_char := char | '~'
 
-feature_def := 'feature' feature_name ['*'] '{' feature_body* '}'
+feature_def := 'feature' feature_name ['*'] ['ordered'] '{' feature_body* '}'
 
 feature_body := feature_instance ':' phoneme+ ';'
 

@@ -34,6 +34,7 @@ namespace sca {
     size_t def = 0;
     size_t line, col;
     bool isCore;
+    bool ordered = false;
     [[nodiscard]] Error getFeatureInstanceByName(
       const std::string& name, size_t& id) const;
   };

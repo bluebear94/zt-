@@ -87,7 +87,7 @@ A *string literal* is:
 
 * a series of bytes that are either letters in ASCII or non-ASCII bytes
   (thereby allowing Unicode characters to be put in such a place), other than
-  the keywords `feature`, `class` or `NOT`
+  the keywords `feature`, `class`, `NOT` or `ordered`
 * a series of characters other than `\` or `"`, or the escape sequences
   `\\`, `\"` or `\n` (meaning what you expect them to mean), surrounded by
   double quotes
@@ -109,7 +109,7 @@ For now, a given phoneme can be in only one class.
 
 #### Feature declarations
 
-    feature <feature-name> [*] {
+    feature <feature-name> [*] [ordered] {
       <feature-instance> [*]: <phoneme+>;
       # ...
     }
@@ -121,6 +121,10 @@ given feature will default to the first on the list.
 If `*` is present after the feature name, then the feature is marked as
 a non-core feature. This means that this feature will not factor into
 the identity of a phoneme.
+
+If the `ordered` keyword is provided, then the feature is *ordered*. That is,
+the comparisons `<`, `>`, `<=` and `>=` can be used on it. Feature instances
+appearing lower in the feature definition will be "greater".
 
 If `*` is present after a feature *instance* name, then that one is set as
 the default. At most one instance can be set as the default.
@@ -165,7 +169,8 @@ each other.
 Constraints are written as `<feature> <op> <instance+>`, where:
 
 * `<feature>` is a feature name, obviously
-* `<op>` is either `=` or `!=` (only `=` is allowed in `<ω>`)
+* `<op>` is either `=` or `!=` (only `=` is allowed in `<ω>`); if `<feature>`
+  is ordered, then `<`, `>`, `<=` and `>=` are also allowed
 * `<instance+>` is a list of one or more instances of the feature you want
   to match for (or against). That is, if `<op>` is `=`, then the constraint
   will match phonemes with that feature set to any of the instances listed.
