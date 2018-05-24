@@ -9,6 +9,11 @@
 #include "iterutils.h"
 #include "matching.h"
 
+/*
+  For the implementation of the SimpleRule::verify and CompoundRule::verify
+  methods, see verify_rule.cpp.
+*/
+
 namespace sca {
   size_t PhonemeSpec::getFeatureValue(size_t f, const SCA& sca) const {
     return (f < featureValues.size()) ?

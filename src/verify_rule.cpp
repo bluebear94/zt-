@@ -40,121 +40,134 @@ namespace sca {
     }
     return common;
   }
-  void SimpleRule::verify(std::vector<Error>& errors, const SCA& sca) const {
-    // A rule should not have both unlabelled and labelled matchers.
-    // Unlabelled matchers across different categories are fine.
-    bool hasLabelledMatchers = false;
-    bool hasUnlabelledMatchers = false;
-    MatchSet defined; // Set of defined symbols
+  struct SimpleRuleVerifyContext {
+    SimpleRuleVerifyContext() :
+      hasLabelledMatchers(false), hasUnlabelledMatchers(false) {}
+    size_t line, col;
+    MatchSet defined;
+    bool hasLabelledMatchers, hasUnlabelledMatchers;
     std::unordered_map<
       std::pair<size_t, size_t>, size_t, PHash<size_t, size_t>>
-    enumCount; // Count of phonemes in enum matcher
-    auto checkString = [&](const MString& st, bool write) {
-      if (write) {
-        auto used = getAllMatchers(st);
-        // Record defined symbols
-        for (const auto& p : used) defined.insert(p);
+    enumCount;
+  };
+  static void checkString(
+    const MString& st, bool write,
+    std::vector<Error>& errors, const SCA& sca,
+    SimpleRuleVerifyContext& ctx
+  ) {
+    if (write) {
+      auto used = getAllMatchers(st);
+      // Record defined symbols
+      for (const auto& p : used) ctx.defined.insert(p);
+    }
+    for (const MChar& c : st) {
+      if (!write && !c.isSingleCharacter()) {
+        errors.push_back(Error(ErrorCode::nonSingleCharInOmega)
+          .at(ctx.line, ctx.col));
       }
-      for (const MChar& c : st) {
-        if (!write && !c.isSingleCharacter()) {
-          errors.push_back(Error(ErrorCode::nonSingleCharInOmega)
-            .at(line, col));
+      if (!c.is<CharMatcher>()) continue;
+      const CharMatcher& m = c.as<CharMatcher>();
+      std::string asString = m.toString(sca);
+      auto p = std::pair(m.charClass, m.index);
+      bool unlabelled = m.index == 0;
+      if (unlabelled ? ctx.hasLabelledMatchers : ctx.hasUnlabelledMatchers)
+        errors.push_back(Error(ErrorCode::mixedMatchers)
+          .at(ctx.line, ctx.col));
+      if (unlabelled) ctx.hasUnlabelledMatchers = true;
+      else ctx.hasLabelledMatchers = true;
+      auto verifyEnumCount = [&](auto iter) {
+        size_t count = iter->second;
+        if (count == -1) {
+          errors.push_back((ErrorCode::enumToNonEnum
+            % asString)
+            .at(ctx.line, ctx.col));
+        } else if (count != m.getEnumeration().size()) {
+          errors.push_back((ErrorCode::enumCharCountMismatch
+            % asString)
+            .at(ctx.line, ctx.col));
         }
-        if (!c.is<CharMatcher>()) continue;
-        const CharMatcher& m = c.as<CharMatcher>();
-        std::string asString = m.toString(sca);
-        auto p = std::pair(m.charClass, m.index);
-        bool unlabelled = m.index == 0;
-        if (unlabelled ? hasLabelledMatchers : hasUnlabelledMatchers)
-          errors.push_back(Error(ErrorCode::mixedMatchers).at(line, col));
-        (unlabelled ? hasUnlabelledMatchers : hasLabelledMatchers) = true;
-        auto verifyEnumCount = [&](auto iter) {
-          size_t count = iter->second;
-          if (count == -1) {
-            errors.push_back((ErrorCode::enumToNonEnum
-              % asString)
-              .at(line, col));
-          } else if (count != m.getEnumeration().size()) {
-            errors.push_back((ErrorCode::enumCharCountMismatch
-              % asString)
-              .at(line, col));
-          }
-        };
-        if (write) {
-          if (m.hasConstraints()) {
-            enumCount.try_emplace(
-              p, -1);
-            // If already there, no need to check
-          } else {
-            auto res = enumCount.try_emplace(
-              p, m.getEnumeration().size());
-            // If already there, then check
-            if (!res.second) {
-              verifyEnumCount(res.first);
-            }
-          }
+      };
+      if (write) {
+        if (m.hasConstraints()) {
+          ctx.enumCount.try_emplace(
+            p, -1);
+          // If already there, no need to check
         } else {
-          // Reject if not already defined...
-          if (defined.count(p) == 0) {
-            errors.push_back((ErrorCode::undefinedMatcher
-              % asString)
-              .at(line, col));
-          }
-          // ... or tries to set a non-core feature,
-          // or tries to use a comparison other than `==`
-          // or tries to set multiple instances of a feature
-          //   (though this could be a future extension?)
-          if (m.hasConstraints()) {
-            for (const CharMatcher::Constraint& con : m.getConstraints()) {
-              std::string cstring = con.toString(sca);
-              const auto& f = sca.getFeatureByID(con.feature);
-              if (!f.isCore) {
-                errors.push_back((ErrorCode::nonCoreFeatureSet
-                  % cstring)
-                  .at(line, col));
-              }
-              if (con.c != Comparison::eq) {
-                errors.push_back((ErrorCode::invalidOperatorOmega
-                  % cstring)
-                  .at(line, col));
-              }
-              if (con.instances.size() != 1) {
-                errors.push_back((ErrorCode::multipleInstancesOmega
-                  % cstring)
-                  .at(line, col));
-              }
-            }
-          } else {
-            // ... or mismatches enum char count of a previous matcher
-            auto it = enumCount.find(p);
-            if (it == enumCount.end()) {
-            errors.push_back((ErrorCode::undefinedMatcher
-              % asString)
-              .at(line, col));
-            }
-            verifyEnumCount(it);
+          auto res = ctx.enumCount.try_emplace(
+            p, m.getEnumeration().size());
+          // If already there, then check
+          if (!res.second) {
+            verifyEnumCount(res.first);
           }
         }
+      } else {
+        // Reject if not already defined...
+        if (ctx.defined.count(p) == 0) {
+          errors.push_back((ErrorCode::undefinedMatcher
+            % asString)
+            .at(ctx.line, ctx.col));
+        }
+        // ... or tries to set a non-core feature,
+        // or tries to use a comparison other than `==`
+        // or tries to set multiple instances of a feature
+        //   (though this could be a future extension?)
         if (m.hasConstraints()) {
           for (const CharMatcher::Constraint& con : m.getConstraints()) {
             std::string cstring = con.toString(sca);
-            const Feature& f = sca.getFeatureByID(con.feature);
-            if (!f.ordered &&
-                con.c != Comparison::eq && con.c != Comparison::ne) {
-              errors.push_back(
-                (ErrorCode::orderedConstraintUnorderedFeature % cstring)
-                .at(line, col));
+            const auto& f = sca.getFeatureByID(con.feature);
+            if (!f.isCore) {
+              errors.push_back((ErrorCode::nonCoreFeatureSet
+                % cstring)
+                .at(ctx.line, ctx.col));
             }
+            if (con.c != Comparison::eq) {
+              errors.push_back((ErrorCode::invalidOperatorOmega
+                % cstring)
+                .at(ctx.line, ctx.col));
+            }
+            if (con.instances.size() != 1) {
+              errors.push_back((ErrorCode::multipleInstancesOmega
+                % cstring)
+                .at(ctx.line, ctx.col));
+            }
+          }
+        } else {
+          // ... or mismatches enum char count of a previous matcher
+          auto it = ctx.enumCount.find(p);
+          if (it == ctx.enumCount.end()) {
+          errors.push_back((ErrorCode::undefinedMatcher
+            % asString)
+            .at(ctx.line, ctx.col));
+          }
+          verifyEnumCount(it);
+        }
+      }
+      if (m.hasConstraints()) {
+        for (const CharMatcher::Constraint& con : m.getConstraints()) {
+          std::string cstring = con.toString(sca);
+          const Feature& f = sca.getFeatureByID(con.feature);
+          if (!f.ordered &&
+              con.c != Comparison::eq && con.c != Comparison::ne) {
+            errors.push_back(
+              (ErrorCode::orderedConstraintUnorderedFeature % cstring)
+              .at(ctx.line, ctx.col));
           }
         }
       }
-    };
-    checkString(alpha, true);
+    }
+  }
+  void SimpleRule::verify(std::vector<Error>& errors, const SCA& sca) const {
+    // A rule should not have both unlabelled and labelled matchers.
+    // Unlabelled matchers across different categories are fine.
+    SimpleRuleVerifyContext ctx;
+    ctx.line = line;
+    ctx.col = col;
+    checkString(alpha, true, errors, sca, ctx);
     for (const auto& p : envs) {
       const auto& lambda = p.first;
       const auto& rho = p.second;
-      checkString(lambda, true);
-      checkString(rho, true);
+      checkString(lambda, true, errors, sca, ctx);
+      checkString(rho, true, errors, sca, ctx);
       for (size_t i = 1; i < lambda.size(); ++i) {
         if (lambda[i].is<Space>()) {
           errors.push_back(Error(ErrorCode::spacesWrong).at(line, col));
@@ -168,7 +181,7 @@ namespace sca {
         }
       }
     }
-    checkString(omega, false);
+    checkString(omega, false, errors, sca, ctx);
   }
   void CompoundRule::verify(std::vector<Error>& errors, const SCA& sca) const {
     for (const SimpleRule& s : components) {
