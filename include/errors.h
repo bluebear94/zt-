@@ -22,7 +22,8 @@ namespace sca {
     invalidOperatorOmega,
     multipleInstancesOmega,
     nonSingleCharInOmega,
-    orderedConstraintUnorderedFeature
+    orderedConstraintUnorderedFeature,
+    undefinedDependentConstraint,
   };
   struct Error {
     ErrorCode ec;
