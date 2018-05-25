@@ -165,7 +165,7 @@ namespace sca {
   }
   void SCA::verify(std::vector<Error>& errors) const {
     for (const SoundChange& sc : rules) {
-      sc.rule->verify(errors, *this);
+      sc.rule->verify(errors, *this, sc);
     }
   }
   void SCA::reversePhonemeMap() {

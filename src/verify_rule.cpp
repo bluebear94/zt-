@@ -23,20 +23,25 @@ namespace sca {
   static void checkString(
     const MString& st, bool write,
     std::vector<Error>& errors, const SCA& sca,
-    DependentConstraintVerifyContext& ctx);
-  void SimpleRule::verify(std::vector<Error>& errors, const SCA& sca) const {
+    DependentConstraintVerifyContext& ctx,
+    bool isrtl);
+  void SimpleRule::verify(
+      std::vector<Error>& errors,
+      const SCA& sca,
+      const SoundChange& sc) const {
     // A rule should not have both unlabelled and labelled matchers.
     // Unlabelled matchers across different categories are fine.
     DependentConstraintVerifyContext ctx;
     ctx.line = line;
     ctx.col = col;
     ctx.seen.emplace_back();
-    checkString(alpha, true, errors, sca, ctx);
+    bool isrtl = sc.eo == EvaluationOrder::rtl;
+    checkString(alpha, true, errors, sca, ctx, isrtl);
     for (const auto& p : envs) {
       const auto& lambda = p.first;
       const auto& rho = p.second;
-      checkString(lambda, true, errors, sca, ctx);
-      checkString(rho, true, errors, sca, ctx);
+      checkString(lambda, true, errors, sca, ctx, !isrtl);
+      checkString(rho, true, errors, sca, ctx, isrtl);
       for (size_t i = 1; i < lambda.size(); ++i) {
         if (lambda[i].is<Space>()) {
           errors.push_back(Error(ErrorCode::spacesWrong).at(line, col));
@@ -50,11 +55,14 @@ namespace sca {
         }
       }
     }
-    checkString(omega, false, errors, sca, ctx);
+    checkString(omega, false, errors, sca, ctx, isrtl);
   }
-  void CompoundRule::verify(std::vector<Error>& errors, const SCA& sca) const {
+  void CompoundRule::verify(
+      std::vector<Error>& errors,
+      const SCA& sca,
+      const SoundChange& sc) const {
     for (const SimpleRule& s : components) {
-      s.verify(errors, sca);
+      s.verify(errors, sca, sc);
     }
   }
   static bool hasMatcher(
@@ -113,10 +121,12 @@ namespace sca {
   static void checkString(
     const MString& st, bool write,
     std::vector<Error>& errors, const SCA& sca,
-    DependentConstraintVerifyContext& ctx
+    DependentConstraintVerifyContext& ctx,
+    bool isrtl
   ) {
     MatchSet& top = ctx.seen.back(); // shouldn't be invalidated
-    for (const MChar& ch : st) {
+    for (size_t i = 0; i < st.size(); ++i) {
+      const MChar& ch = st[isrtl ? st.size() - 1 - i : i];
       if (!write && !ch.isSingleCharacter()) {
         errors.push_back(Error(ErrorCode::nonSingleCharInOmega)
           .at(ctx.line, ctx.col));
@@ -202,13 +212,13 @@ namespace sca {
           if (arg.options.empty()) return;
           ctx.seen.emplace_back();
           checkString(
-            arg.options[0], write, errors, sca, ctx);
+            arg.options[0], write, errors, sca, ctx, isrtl);
           auto common = std::move(ctx.seen.back());
           ctx.seen.pop_back();
           for (size_t i = 1; i < arg.options.size(); ++i) {
             ctx.seen.emplace_back();
             checkString(
-              arg.options[i], write, errors, sca, ctx);
+              arg.options[i], write, errors, sca, ctx, isrtl);
             MatchSet intersect;
             for (const auto& p : common) {
               if (ctx.seen.back().find(p) != ctx.seen.back().end())
@@ -223,7 +233,7 @@ namespace sca {
           // ====== End Alternation ======================================
         } else if constexpr (std::is_same_v<T, Repeat>) {
           // ========== Repeat ===========================================
-          checkString(arg.s, write, errors, sca, ctx);
+          checkString(arg.s, write, errors, sca, ctx, isrtl);
           // ====== End Repeat ===========================================
         }
         // Other cases need not be considered.

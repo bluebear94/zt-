@@ -11,6 +11,7 @@
 
 namespace sca {
   class SCA;
+  struct SoundChange;
   class MatchResult;
   using MatchCapture = std::unordered_map<
     std::pair<size_t, size_t>,
@@ -121,7 +122,9 @@ namespace sca {
       const SCA& sca, MString& str, size_t start) const = 0;
     virtual std::optional<size_t> tryReplaceRTL(
       const SCA& sca, MString& str, size_t start) const = 0;
-    virtual void verify(std::vector<Error>& errors, const SCA& sca) const {}
+    virtual void verify(
+      std::vector<Error>& errors, const SCA& sca, const SoundChange& sc) const
+      = 0;
     size_t line = -1, col = -1;
   };
   struct SimpleRule : public Rule {
@@ -129,7 +132,10 @@ namespace sca {
       const SCA& sca, MString& str, size_t start) const override;
     std::optional<size_t> tryReplaceRTL(
       const SCA& sca, MString& str, size_t start) const override;
-    void verify(std::vector<Error>& errors, const SCA& sca) const override;
+    void verify(
+      std::vector<Error>& errors,
+      const SCA& sca,
+      const SoundChange& sc) const override;
     MString alpha, omega;
     std::vector<std::pair<MString, MString>> envs;
     bool inv;
@@ -139,7 +145,10 @@ namespace sca {
       const SCA& sca, MString& str, size_t start) const override;
     std::optional<size_t> tryReplaceRTL(
       const SCA& sca, MString& str, size_t start) const override;
-    void verify(std::vector<Error>& errors, const SCA& sca) const override;
+    void verify(
+      std::vector<Error>& errors,
+      const SCA& sca,
+      const SoundChange& sc) const override;
     std::vector<SimpleRule> components;
   };
 }
