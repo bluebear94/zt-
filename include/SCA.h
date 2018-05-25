@@ -48,7 +48,7 @@ namespace sca {
     EvaluationOrder eo = EvaluationOrder::ltr;
     Behaviour beh = Behaviour::once;
     std::unordered_set<std::string> poses;
-    void apply(const SCA& sca, MString& st, const std::string& pos) const;
+    void apply(const SCA& sca, WString& st, const std::string& pos) const;
   };
   class SCA {
   public:

@@ -43,6 +43,10 @@ namespace sca {
     return PUnique<T>::owner(new T(std::forward<Args...>(args...)));
   }
   template<typename T>
+  PUnique<T> makePOwner() {
+    return PUnique<T>::owner(new T);
+  }
+  template<typename T>
   PUnique<T> makePObserver(T& t) {
     return PUnique<T>::observer(&t);
   }

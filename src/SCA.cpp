@@ -1,5 +1,7 @@
 #include "SCA.h"
 
+#include "assert.h"
+
 #include <algorithm>
 
 #include "sca_lua.h"
@@ -54,7 +56,7 @@ namespace sca {
     return ErrorCode::ok;
   }
   void SoundChange::apply(
-      const SCA& sca, MString& st, const std::string& pos) const {
+      const SCA& sca, WString& st, const std::string& pos) const {
     if (!poses.empty() && poses.count(pos) == 0) return;
     if (eo == EvaluationOrder::ltr) {
       size_t i = 0;
@@ -181,33 +183,49 @@ namespace sca {
   }
   std::string SCA::apply(
       const std::string_view& st, const std::string& pos) const {
+    // Split into phonemes
     MString ms;
     splitIntoPhonemes(*this, st, ms);
+    // Map to actual PhonemeSpec objects
+    WString ws;
+    for (const MChar& ch : ms) {
+      const PhonemeSpec* ps;
+      assert(ch.is<std::string>());
+      auto res = getPhonemeByName(ch.as<std::string>(), ps);
+      if (res.ok())
+        ws.push_back(makePObserver(*ps));
+      else {
+        // None found; create a temporary
+        // (would have liked to cache this but this method is const)
+        auto ps2 = makePOwner<PhonemeSpec>();
+        ps2->name = std::move(ch.as<std::string>());
+        ws.push_back(makeConst(std::move(ps2)));
+      }
+    }
     for (const SoundChange& r : rules)
-      r.apply(*this, ms, pos);
+      r.apply(*this, ws, pos);
     std::string s;
-    for (const MChar& mc : ms) {
-      if (mc.is<std::string>())
-        s += mc.as<std::string>();
-      else if (mc.is<PhonemeSpec>()) {
-        const auto& spec = mc.as<PhonemeSpec>();
+    for (const auto& wc : ws) {
+      auto p = getPhonemesBySpec(*wc);
+      if (p.first == p.second) {
         s += "[phoneme/";
-        if (spec.charClass == -1) s += '*';
-        else s += charClasses[spec.charClass].name;
+        if (wc->charClass == -1) s += '*';
+        else s += charClasses[wc->charClass].name;
         s += ':';
         bool first = true;
         for (size_t i = 0; i < features.size(); ++i) {
           if (!features[i].isCore) continue;
           if (!first) s += ',';
-          size_t k = spec.getFeatureValue(i, *this);
+          size_t k = wc->getFeatureValue(i, *this);
           s += features[i].featureName;
           s += '=';
           s += features[i].instanceNames[k];
           first = false;
         }
         s += "]";
+      } else {
+        s += wc->name;
       }
-      else s += "#";
     }
     return s;
   }
