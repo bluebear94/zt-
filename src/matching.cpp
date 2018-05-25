@@ -127,9 +127,9 @@ namespace sca {
       }
     }, fr.value);
   }
-  const PUnique<PhonemeSpec> applyOmega(
-      const SCA& sca, MChar&& old, const MatchCapture& mc) {
-    return std::visit([&](auto&& arg) -> const PUnique<PhonemeSpec> {
+  PUnique<const PhonemeSpec> applyOmega(
+      const SCA& sca, const MChar& old, const MatchCapture& mc) {
+    return std::visit([&](auto&& arg) -> PUnique<const PhonemeSpec> {
       using T = std::decay_t<decltype(arg)>;
       if constexpr (std::is_same_v<T, CharMatcher>) {
         auto it = mc.find(std::pair(arg.charClass, arg.index));
@@ -144,7 +144,7 @@ namespace sca {
           auto phrange = sca.getPhonemesBySpec(*ps);
           if (phrange.first == phrange.second) {
             // Return an anonymous phoneme spec
-            return ps;
+            return makeConst(std::move(ps));
           }
           return makePObserver(phrange.first->first);
         } else {

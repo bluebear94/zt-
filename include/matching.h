@@ -36,6 +36,6 @@ namespace sca {
   };
   bool charsMatch(
     const SCA& sca, const MChar& fr, const PhonemeSpec& fi, MatchCapture& mc);
-  const PUnique<PhonemeSpec> applyOmega(
-    const SCA& sca, MChar&& old, const MatchCapture& mc);
+  PUnique<const PhonemeSpec> applyOmega(
+    const SCA& sca, const MChar& old, const MatchCapture& mc);
 }

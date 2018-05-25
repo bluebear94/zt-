@@ -97,55 +97,21 @@ namespace sca {
     return s;
   }
   // ------------------------------------------------------------------
-  template<typename T>
-  static void replaceSubrange(
-      std::vector<T>& v1,
-      size_t b1,
-      size_t e1,
-      typename std::vector<T>::iterator b2,
-      typename std::vector<T>::iterator e2) {
-    size_t size1 = (size_t) (e1 - b1);
-    size_t size2 = (size_t) (e2 - b2);
-    size_t oldSize = v1.size();
-    // Shift left or right?
-    if (size1 > size2) { // Left
-      std::copy(
-        v1.begin() + e1, v1.end(),
-        v1.begin() + b1 + size2);
-      v1.resize(v1.size() + size2 - size1);
-    } else if (size1 < size2) { // Right
-      v1.resize(v1.size() + size2 - size1);
-      std::copy_backward(
-        v1.begin() + e1, v1.begin() + oldSize,
-        v1.end());
-    }
-    std::copy(b2, e2, v1.begin() + b1);
-  }
-  template<typename T>
-  static void replaceSubrange(
-      std::vector<T>& v1,
-      typename std::vector<T>::iterator b1,
-      typename std::vector<T>::iterator e1,
-      typename std::vector<T>::iterator b2,
-      typename std::vector<T>::iterator e2) {
-    replaceSubrange(v1, b1 - v1.begin(), e1 - v1.begin(), b2, e2);
-  }
-  // ------------------------------------------------------------------
-  template<typename Fwd>
-  static std::optional<Fwd> matchesMChar(
-    Fwd istart, Fwd iend,
+  template<typename CFwd, typename WFwd>
+  static std::optional<WFwd> matchesMChar(
+    WFwd istart, WFwd iend,
     const MChar& ruleChar,
     const SCA& sca,
     MatchCapture& mc
   ) {
     if (ruleChar.isSingleCharacter()) {
       if (istart == iend) return std::nullopt;
-      bool match = charsMatch(sca, ruleChar, *istart, mc);
+      bool match = charsMatch(sca, ruleChar, **istart, mc);
       if (match) return istart + 1;
       else return std::nullopt;
     }
     // Does not necessarily match one and only one.
-    return std::visit([&](const auto& arg) -> std::optional<Fwd> {
+    return std::visit([&](const auto& arg) -> std::optional<WFwd> {
       using T = std::decay_t<decltype(arg)>;
       if constexpr (std::is_same_v<T, Alternation>) {
         // Try each option in succession and pick the first one that works
@@ -154,7 +120,7 @@ namespace sca {
           MatchCapture mcback(mc);
           auto it = matchesPattern(
             istart, iend,
-            IRev<Fwd>::cbegin(opt), IRev<Fwd>::cend(opt),
+            IRev<CFwd>::cbegin(opt), IRev<CFwd>::cend(opt),
             sca, mc
           );
           if (it.has_value()) { // Success!
@@ -165,13 +131,13 @@ namespace sca {
         return std::nullopt;
       } else if constexpr (std::is_same_v<T, Repeat>) {
         size_t nCopies = 0;
-        Fwd it = istart;
+        WFwd it = istart;
         while (true) {
           if (it >= iend) break; // Passed the end; can't match anymore
           if (nCopies > arg.max) break; // Can't match more copies
           auto matchEnd = matchesPattern(
             it, iend,
-            IRev<Fwd>::cbegin(arg.s), IRev<Fwd>::cend(arg.s),
+            IRev<CFwd>::cbegin(arg.s), IRev<CFwd>::cend(arg.s),
             sca, mc
           );
           if (!matchEnd.has_value()) break; // No match
@@ -189,17 +155,17 @@ namespace sca {
   }
   // If the pattern matches the text at the start point, return the iterator
   // to the end of the match. Otherwise, return std::nullopt.
-  template<typename Fwd, typename CFwd
+  template<typename CFwd, typename WFwd
   > // templated to handle both fwd and rev cases
-  static std::optional<Fwd> matchesPattern(
-    Fwd istart, // where to start looking
-    Fwd iend, // end of string (stop looking when you reach here)
+  static std::optional<WFwd> matchesPattern(
+    WFwd istart, // where to start looking
+    WFwd iend, // end of string (stop looking when you reach here)
     CFwd rstart, // iterator to start of rule
     CFwd rend, // iterator to end of rule
     const SCA& sca,
     MatchCapture& mc
   ) {
-    Fwd iit = istart;
+    WFwd iit = istart;
     CFwd rit = rstart;
     while (true) {
       if (rit == rend) // all chars matched
@@ -209,15 +175,16 @@ namespace sca {
         return std::nullopt;
       }
       const auto& inRule = *rit;
-      auto matchEnd = matchesMChar(iit, iend, inRule, sca, mc);
+      auto matchEnd = matchesMChar<CFwd, WFwd>(iit, iend, inRule, sca, mc);
       if (!matchEnd.has_value()) return std::nullopt;
       ++rit;
       iit = *matchEnd;
     }
   }
-  template<typename Fwd, typename CFwd>
-  static std::optional<Fwd> matchesRule(
-    Fwd istart, Fwd ipoint, Fwd iend, // text start / search start / text end
+  template<typename Fwd, typename CFwd, typename WFwd>
+  static std::optional<WFwd> matchesRule(
+    // v text start / search start / text end
+    WFwd istart, WFwd ipoint, WFwd iend,
     CFwd astart, CFwd aend, // alpha
     const std::vector<std::pair<MString, MString>>& envs, // envs
     bool envInverted, // Match if environment is NOT matched (vs matched)?
@@ -226,7 +193,7 @@ namespace sca {
   ) {
     auto amatch = matchesPattern(ipoint, iend, astart, aend, sca, mc);
     if (!amatch) return std::nullopt;
-    Fwd ipend = *amatch;
+    WFwd ipend = *amatch;
     auto matchesEnv = [=, &sca, &mc]() -> bool {
       // Special case: if there's no environment, then always pass
       // the environment check
@@ -257,10 +224,10 @@ namespace sca {
   }
   // ------------------------------------------------------------------
   std::optional<size_t> SimpleRule::tryReplaceLTR(
-      const SCA& sca, MString& str, size_t start) const {
+      const SCA& sca, WString& str, size_t start) const {
     MatchCapture mc;
     auto istart = str.begin() + start;
-    auto match = matchesRule(
+    auto match = matchesRule<MSI, MSCI, WString::iterator>(
       str.begin(), istart, str.end(),
       alpha.begin(), alpha.end(),
       envs,
@@ -273,18 +240,18 @@ namespace sca {
     assert(end >= istart);
     size_t s = (size_t) (end - istart);
     // Now replace subrange
-    MString omegaApp = omega;
-    for (MChar& oc : omegaApp)
-      oc = applyOmega(sca, std::move(oc), mc);
+    WString omegaApp;
+    for (const MChar& oc : omega)
+      omegaApp.push_back(applyOmega(sca, oc, mc));
     replaceSubrange(
       str, istart, end, omegaApp.begin(), omegaApp.end());
     return s;
   }
   std::optional<size_t> SimpleRule::tryReplaceRTL(
-      const SCA& sca, MString& str, size_t start) const {
+      const SCA& sca, WString& str, size_t start) const {
     MatchCapture mc;
     auto istart = str.rbegin() + start;
-    auto match = matchesRule(
+    auto match = matchesRule<MSRI, MSRCI, WString::reverse_iterator>(
       str.rbegin(), istart, str.rend(),
       alpha.rbegin(), alpha.rend(),
       envs,
@@ -297,15 +264,15 @@ namespace sca {
     assert(end >= istart);
     size_t s = (size_t) (end - istart);
     // Now replace subrange
-    MString omegaApp = omega;
-    for (MChar& oc : omegaApp)
-      oc = applyOmega(sca, std::move(oc), mc);
+    WString omegaApp;
+    for (const MChar& oc : omega)
+      omegaApp.push_back(applyOmega(sca, oc, mc));
     replaceSubrange(
       str, end.base(), istart.base(), omegaApp.begin(), omegaApp.end());
     return s;
   }
   std::optional<size_t> CompoundRule::tryReplaceLTR(
-      const SCA& sca, MString& str, size_t start) const {
+      const SCA& sca, WString& str, size_t start) const {
     for (const SimpleRule& sr : components) {
       auto res = sr.tryReplaceLTR(sca, str, start);
       if (res.has_value()) return *res;
@@ -313,7 +280,7 @@ namespace sca {
     return std::nullopt;
   }
   std::optional<size_t> CompoundRule::tryReplaceRTL(
-      const SCA& sca, MString& str, size_t start) const {
+      const SCA& sca, WString& str, size_t start) const {
     for (const SimpleRule& sr : components) {
       auto res = sr.tryReplaceRTL(sca, str, start);
       if (res.has_value()) return *res;

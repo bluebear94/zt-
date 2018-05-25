@@ -4,17 +4,12 @@ namespace sca {
   template<typename T>
   class PUnique {
   public:
+    PUnique() : p(nullptr), owned(false) {}
     static PUnique<T> owner(T* p) {
       return PUnique(p, true);
     }
     static PUnique<T> observer(T* p) {
       return PUnique(p, false);
-    }
-    static const PUnique<T> owner(const T* p) {
-      return PUnique((T*) p, true);
-    }
-    static const PUnique<T> observer(const T* p) {
-      return PUnique((T*) p, false);
     }
     PUnique(PUnique&& o) : p(o.p), owned(o.owned) {
       o.owned = false;
@@ -40,6 +35,8 @@ namespace sca {
     PUnique(T* p, bool owned) : p(p), owned(owned) {}
     T* p;
     bool owned;
+    template<typename U>
+    friend PUnique<const U> makeConst(PUnique<U>&& ptr);
   };
   template<typename T, typename... Args>
   PUnique<T> makePOwner(Args&&... args) {
@@ -50,7 +47,10 @@ namespace sca {
     return PUnique<T>::observer(&t);
   }
   template<typename T>
-  const PUnique<T> makePObserver(const T& t) {
-    return PUnique<T>::observer(&t);
+  PUnique<const T> makeConst(PUnique<T>&& ptr) {
+    PUnique<const T> np = PUnique<const T>::owner(ptr.p);
+    ptr.p = nullptr;
+    ptr.owned = false;
+    return np;
   }
 }

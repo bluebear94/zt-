@@ -19,16 +19,16 @@ INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(include/)
 
 SET(SOURCES
-  src/main.cpp
+  src/errors.cpp
+  src/PHash.cpp
   src/Lexer.cpp
   src/Parser.cpp
-  src/SCA.cpp
-  src/errors.cpp
   src/matching.cpp
-  src/Rule.cpp
   src/verify_rule.cpp
-  src/PHash.cpp
+  src/Rule.cpp
   src/sca_lua.cpp
+  src/SCA.cpp
+  src/main.cpp
 )
 
 ADD_EXECUTABLE(sca_e_kozet ${SOURCES})
