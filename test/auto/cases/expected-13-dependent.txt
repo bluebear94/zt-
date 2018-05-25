@@ -1,4 +1,4 @@
 pp -> p
 ft -> s
 mk -> ŋ
-mt -> ŋ
+mt -> n

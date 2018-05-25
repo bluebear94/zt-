@@ -40,8 +40,13 @@ namespace sca {
     for (const auto& p : envs) {
       const auto& lambda = p.first;
       const auto& rho = p.second;
-      checkString(lambda, true, errors, sca, ctx, !isrtl);
-      checkString(rho, true, errors, sca, ctx, isrtl);
+      if (isrtl) {
+        checkString(rho, true, errors, sca, ctx, isrtl);
+        checkString(lambda, true, errors, sca, ctx, !isrtl);
+      } else {
+        checkString(lambda, true, errors, sca, ctx, !isrtl);
+        checkString(rho, true, errors, sca, ctx, isrtl);
+      }
       for (size_t i = 1; i < lambda.size(); ++i) {
         if (lambda[i].is<Space>()) {
           errors.push_back(Error(ErrorCode::spacesWrong).at(line, col));

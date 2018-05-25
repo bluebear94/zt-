@@ -190,10 +190,21 @@ namespace sca {
         return std::nullopt;
       }
       getToken();
-      size_t iid;
-      res = feature->getFeatureInstanceByName(t.as<std::string>(), iid);
-      CHECK_ERROR_CODE(res);
-      c.instances.push_back(iid);
+      const Token& t2 = peekToken();
+      if (t2.isOperator(Operator::colon)) {
+        getToken();
+        size_t cid; CharClass* cl;
+        res = sca->getClassByName(t.as<std::string>(), cid, cl);
+        CHECK_ERROR_CODE(res);
+        auto n = parseNumber();
+        REQUIRE(n)
+        c.instances.push_back(std::pair(cid, *n));
+      } else {
+        size_t iid;
+        res = feature->getFeatureInstanceByName(t.as<std::string>(), iid);
+        CHECK_ERROR_CODE(res);
+        c.instances.push_back(iid);
+      }
       atLeastOne = true;
     }
   }

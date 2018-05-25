@@ -114,9 +114,8 @@ For now, a given phoneme can be in only one class.
       # ...
     }
 
-This will declare a feature with the given name. Phonemes take one of the
-instances for each feature. Phonemes not listed in a declaration for a
-given feature will default to the first on the list.
+This will declare a feature with the given name. Each phoneme takes one of the
+*instances* of each feature.
 
 If `*` is present after the feature name, then the feature is marked as
 a non-core feature. This means that this feature will not factor into
@@ -127,7 +126,8 @@ the comparisons `<`, `>`, `<=` and `>=` can be used on it. Feature instances
 appearing lower in the feature definition will be "greater".
 
 If `*` is present after a feature *instance* name, then that one is set as
-the default. At most one instance can be set as the default.
+the default – that is, any phonemes not listed will take that instance. At
+most one instance can be set as the default.
 
 #### Sound changes:
 
@@ -178,6 +178,12 @@ Constraints are written as `<feature> <op> <instance+>`, where:
   feature set to a value other than any of the instances listed. For instance,
   `pa=lb av` will match phonemes with `pa` set to `lb` or `av`, while
   `pa!=lb av` will match phonemes with `pa` set to anything else.
+  * An `<instance>` can either be a single feature instance name or refer
+    to the value taken by another matcher: for instance, `$(C:2|pa=C:1)`
+    means "match a consonant with the same `pa` as whatever `C:1` matched".
+  * `<`, `>`, `<=` and `>=` act differently when given multiple instances
+    to match against. They match only when the comparison succeeds for all
+    of the values. (Should this be changed?)
 
 In this case, the matcher will match only phonemes that have the correct
 instance of a feature. If there are multiple constraints, then all of them
@@ -226,12 +232,30 @@ depends on the part of speech.
 Note that in a compound rule, these options can only be applied to the whole
 sound change and not its individual components.
 
+#### Nitty-gritties of matching
+
+`<α>`, `<ρ>` and `<ω>` are matched left-to-right in an `/ ltr` sound change
+and right-to-left in an `/ rtl` sound change. `<λ>` is matched in the opposite
+direction as the others.
+
+In an `/ ltr` sound change, `<α>` is checked first, then `<λ>`, then `<ρ>`,
+then the substitution to `<ω>` is performed. In an `/ rtl` sound change,
+the order `<α>` → `<ρ>` → `<λ>` → `<ω>`.
+
+A matcher captured inside an alternation is considered "seen" outside the
+alternation if it is "seen" in all of its branches. Note that this is just
+how the static verifier checks things. For instance, in the following string:
+
+    [k|$(C:1|ma=pl)]aa$(C:1|ma=fr)b
+
+the static verifier considers `$(C:1)` seen at the `b` (assuming left-to-right
+checking), but when the rule is actually run, `$(C:1)` could be captured
+earlier.
+
 #### Unimplemented features
 
 * The `[<Γ>]` you love from UDN is not supported yet. I'll probably embed
   a scripting language to support this in the future.
-* Ordered features (desirable for Middle Rymakonian phonorun reduction) are
-  not yet supported.
 * Heck, why not add looping rules and such?
 * Disjunction in constraints is not yet supported in general (e. g. it's not
   yet possible to match phonemes with, say, `pa=lb` or `ma=pl`). This can
