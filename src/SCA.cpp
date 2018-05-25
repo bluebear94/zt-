@@ -69,6 +69,7 @@ namespace sca {
         }
         s += "]";
       } else {
+        assert(!wc->name.empty());
         s += wc->name;
       }
     }
@@ -149,6 +150,7 @@ namespace sca {
         return ErrorCode::phonemeAlreadyHasClass %
           (phoneme + " is in " + charClasses[spec.charClass].name +
             "; tried to insert it in " + name);
+      if (spec.name.empty()) spec.name = phoneme;
     }
     charClasses.emplace_back();
     CharClass& newClass = charClasses.back();
@@ -220,9 +222,9 @@ namespace sca {
       const PhonemeSpec* ps;
       assert(ch.is<std::string>());
       auto res = getPhonemeByName(ch.as<std::string>(), ps);
-      if (res.ok())
+      if (res.ok()) {
         ws.push_back(makePObserver(*ps));
-      else {
+      } else {
         // None found; create a temporary
         // (would have liked to cache this but this method is const)
         auto ps2 = makePOwner<PhonemeSpec>();
@@ -230,9 +232,10 @@ namespace sca {
         ws.push_back(makeConst(std::move(ps2)));
       }
     }
+    // std::cerr << wStringToString(ws) << "\n";
     for (const SoundChange& r : rules) {
       r.apply(*this, ws, pos);
-      // std::cerr << wStringToString(ws) << "\n";
+      // std::cerr << "-> " << wStringToString(ws) << "\n";
     }
     return wStringToString(ws);
   }

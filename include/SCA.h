@@ -107,8 +107,8 @@ namespace sca {
       const std::string_view& st, const std::string& pos) const;
     void addGlobalLuaCode(const LuaCode& lc);
     std::string executeGlobalLuaCode();
-  private:
     std::string wStringToString(const WString& ws) const;
+  private:
     std::vector<CharClass> charClasses;
     std::vector<Feature> features;
     std::unordered_map<std::string, size_t> featuresByName;
