@@ -3,6 +3,7 @@
 #include "assert.h"
 
 #include <algorithm>
+#include <iostream>
 
 #include "sca_lua.h"
 #include "utf8.h"
@@ -45,6 +46,33 @@ namespace sca {
       const SCA& sca, const std::string_view s,
       std::deque<std::string>& phonemes) {
     splitIntoPhonemes<std::deque<std::string>>(sca, s, phonemes);
+  }
+  std::string SCA::wStringToString(const WString& ws) const {
+    std::string s;
+    for (const auto& wc : ws) {
+      auto p = getPhonemesBySpec(*wc);
+      auto it = phonemes.find(wc->name);
+      if (p.first == p.second && it != phonemes.end()) {
+        s += "[phoneme/";
+        if (wc->charClass == -1) s += '*';
+        else s += charClasses[wc->charClass].name;
+        s += ':';
+        bool first = true;
+        for (size_t i = 0; i < features.size(); ++i) {
+          if (!features[i].isCore) continue;
+          if (!first) s += ',';
+          size_t k = wc->getFeatureValue(i, *this);
+          s += features[i].featureName;
+          s += '=';
+          s += features[i].instanceNames[k];
+          first = false;
+        }
+        s += "]";
+      } else {
+        s += wc->name;
+      }
+    }
+    return s;
   }
   // I hope features with lots of instances aren't that common.
   Error Feature::getFeatureInstanceByName(
@@ -202,32 +230,11 @@ namespace sca {
         ws.push_back(makeConst(std::move(ps2)));
       }
     }
-    for (const SoundChange& r : rules)
+    for (const SoundChange& r : rules) {
       r.apply(*this, ws, pos);
-    std::string s;
-    for (const auto& wc : ws) {
-      auto p = getPhonemesBySpec(*wc);
-      if (p.first == p.second) {
-        s += "[phoneme/";
-        if (wc->charClass == -1) s += '*';
-        else s += charClasses[wc->charClass].name;
-        s += ':';
-        bool first = true;
-        for (size_t i = 0; i < features.size(); ++i) {
-          if (!features[i].isCore) continue;
-          if (!first) s += ',';
-          size_t k = wc->getFeatureValue(i, *this);
-          s += features[i].featureName;
-          s += '=';
-          s += features[i].instanceNames[k];
-          first = false;
-        }
-        s += "]";
-      } else {
-        s += wc->name;
-      }
+      // std::cerr << wStringToString(ws) << "\n";
     }
-    return s;
+    return wStringToString(ws);
   }
   void SCA::addGlobalLuaCode(const LuaCode& lc) {
     globalLuaCode += lc.code;

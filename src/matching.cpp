@@ -159,7 +159,11 @@ namespace sca {
       } else if constexpr (std::is_same_v<T, std::string>) {
         const PhonemeSpec* ps;
         Error res = sca.getPhonemeByName(arg, ps);
-        assert(res.ok());
+        if (!res.ok()) {
+          auto ps2 = makePOwner<PhonemeSpec>();
+          ps2->name = std::move(arg);
+          return makeConst(std::move(ps2));
+        }
         return makePObserver(*ps);
       } else {
         std::cerr << "applyOmega: invalid type for `old`";

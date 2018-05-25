@@ -139,7 +139,7 @@ std::string format(
             if (*w == '\0') {
               std::cerr << "Unclosed conditional " << *w << "\n";
             }
-            res += *w;
+            if (pred) res += *w;
           }
         } else {
           std::cerr << "Unknown condition " << c << "\n";
