@@ -75,6 +75,22 @@ namespace sca {
       const std::string& name, PhonemeSpec const*& ps) const;
     const CharClass& getClassByID(size_t id) const { return charClasses[id]; }
     const Feature& getFeatureByID(size_t id) const { return features[id]; }
+    const CharClass* getClassByIDOrNull(size_t id) const {
+      return (0 <= id && id < charClasses.size())
+        ? &(charClasses[id]) : nullptr;
+    }
+    const Feature* getFeatureByIDOrNull(size_t id) const {
+      return (0 <= id && id < features.size())
+        ? &(features[id]) : nullptr;
+    }
+    CharClass* getClassByIDOrNull(size_t id) {
+      return (0 <= id && id < charClasses.size())
+        ? &(charClasses[id]) : nullptr;
+    }
+    Feature* getFeatureByIDOrNull(size_t id) {
+      return (0 <= id && id < features.size())
+        ? &(features[id]) : nullptr;
+    }
     void insertSoundChange(SoundChange&& sc) {
       rules.push_back(std::move(sc));
     }

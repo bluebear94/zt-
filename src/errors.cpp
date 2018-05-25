@@ -1,6 +1,7 @@
 #include "errors.h"
 
 #include <iostream>
+#include <sstream>
 
 namespace sca {
   static const char* errorCodes[] = {
@@ -31,14 +32,22 @@ namespace sca {
       return errorCodes[n];
     return "Unknown error";
   }
-  void printError(const Error& err) {
-    std::cerr << "SCA error: " << stringError(err.ec) <<
+  static void printError(const Error& err, std::ostream& fh) {
+    fh << "SCA error: " << stringError(err.ec) <<
       " (#" << (int) err.ec << ")";
-    if (!err.details.empty()) std::cerr << ": " << err.details;
+    if (!err.details.empty()) fh << ": " << err.details;
     if (err.line != -1 && err.col != -1) {
-      std::cerr << " at line " << (err.line + 1) <<
+      fh << " at line " << (err.line + 1) <<
         ", column " << (err.col + 1);
     }
-    std::cerr << "\n";
+    fh << "\n";
+  }
+  void printError(const Error& err) {
+    printError(err, std::cerr);
+  }
+  std::string errorAsString(const Error& err) {
+    std::stringstream ss;
+    printError(err, ss);
+    return ss.str();
   }
 }

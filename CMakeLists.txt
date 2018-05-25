@@ -28,6 +28,7 @@ SET(SOURCES
   src/Rule.cpp
   src/verify_rule.cpp
   src/PHash.cpp
+  src/sca_lua.cpp
 )
 
 ADD_EXECUTABLE(sca_e_kozet ${SOURCES})

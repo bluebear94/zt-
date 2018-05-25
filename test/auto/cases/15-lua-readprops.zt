@@ -1,0 +1,31 @@
+class C = p f m t s l n k x ŋ h;
+class V = a e i o u;
+
+feature pa {
+  lb: p f m;
+  av: t s l n;
+  ve: k x ŋ;
+  gl: h;
+}
+
+feature ma {
+  pl: p t k;
+  fr: f s x h;
+  la: l;
+  na: m n ŋ;
+}
+
+executeOnce $$
+local phoneme = sca:getPhoneme("f")
+print("The phoneme is called " .. phoneme:getName())
+print("The phoneme is in the class " ..
+  phoneme:getCharClass(sca):getName())
+local fid, feature = sca:getFeature("pa")
+print("The feature is called " .. feature:getName())
+print("The feature has the following instances:")
+for _, val in ipairs(feature:getInstanceNames()) do
+  print(val)
+end
+local fn = phoneme:getFeatureName(fid, sca)
+print("This phoneme has this feature at " .. fn)
+$$

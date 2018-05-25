@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "sca_lua.h"
 #include "utf8.h"
 
 namespace sca {
@@ -215,6 +216,9 @@ namespace sca {
   }
   std::string SCA::executeGlobalLuaCode() {
     if (globalLuaCode.empty()) return "";
+    sca::lua::init(luaState.get());
+    sca::lua::pushSCA(luaState.get(), *this);
+    lua_setglobal(luaState.get(), "sca");
     int stat = luaL_loadbufferx(
       luaState.get(),
       globalLuaCode.c_str(), globalLuaCode.size(),

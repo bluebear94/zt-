@@ -1,0 +1,9 @@
+The phoneme is called f
+The phoneme is in the class C
+The feature is called pa
+The feature has the following instances:
+lb
+av
+ve
+gl
+This phoneme has this feature at lb
