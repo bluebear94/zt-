@@ -1,6 +1,7 @@
 #include "Rule.h"
 
 #include <assert.h>
+#include <string.h>
 
 #include <algorithm>
 #include <iostream>
@@ -8,6 +9,7 @@
 #include "SCA.h"
 #include "iterutils.h"
 #include "matching.h"
+#include "sca_lua.h"
 
 /*
   For the implementation of the SimpleRule::verify and CompoundRule::verify
@@ -239,6 +241,8 @@ namespace sca {
     auto end = *match;
     assert(end >= istart);
     size_t s = (size_t) (end - istart);
+    bool gammaMatches = evaluate(sca.getLuaState(), str, start, start + s);
+    if (!gammaMatches) return std::nullopt;
     // Now replace subrange
     WString omegaApp;
     for (const MChar& oc : omega)
@@ -263,6 +267,12 @@ namespace sca {
     auto end = *match;
     assert(end >= istart);
     size_t s = (size_t) (end - istart);
+    size_t eifwd = str.size() - 1 - start;
+    bool gammaMatches = evaluate(
+      sca.getLuaState(), str,
+      eifwd - s,
+      eifwd);
+    if (!gammaMatches) return std::nullopt;
     // Now replace subrange
     WString omegaApp;
     for (const MChar& oc : omega)
@@ -286,5 +296,44 @@ namespace sca {
       if (res.has_value()) return *res;
     }
     return std::nullopt;
+  }
+  bool SimpleRule::setGamma(lua_State* luaState, const std::string_view& s) {
+    char* buffer = new char[s.length() + 7];
+    memcpy(buffer, "return ", 7);
+    memcpy(buffer + 7, s.data(), s.length());
+    int stat = luaL_loadbuffer(luaState, buffer, s.length() + 7, "<Γ>");
+    delete[] buffer;
+    if (stat != LUA_OK) return false;
+    gammaref = luaL_ref(luaState, LUA_REGISTRYINDEX);
+    return true;
+  }
+  bool SimpleRule::evaluate(lua_State* luaState,
+      const WString& word, size_t mstart, size_t mend) const {
+    if (gammaref == LUA_NOREF) return true;
+    // Create M
+    lua_newtable(luaState);
+    lua_pushinteger(luaState, mstart + 1);
+    lua_setfield(luaState, -2, "s");
+    lua_pushinteger(luaState, mend + 1);
+    lua_setfield(luaState, -2, "e");
+    lua_pushinteger(luaState, mend - mstart);
+    lua_setfield(luaState, -2, "n");
+    lua_setglobal(luaState, "M");
+    // Create W
+    lua_newtable(luaState);
+    for (size_t i = 0; i < word.size(); ++i) {
+      // pray that no one modifies the word
+      sca::lua::pushPhonemeSpec(luaState, (PhonemeSpec&) *(word[i]));
+      lua_seti(luaState, -2, i + 1);
+    }
+    lua_setglobal(luaState, "W");
+    lua_geti(luaState, LUA_REGISTRYINDEX, gammaref);
+    int stat = lua_pcall(luaState, 0, 1, 0);
+    if (stat != LUA_OK) {
+      std::cerr << "Fatal error when evaluating a Γ:\n";
+      std::cerr << lua_tostring(luaState, -1) << "\n";
+      abort();
+    }
+    return lua_toboolean(luaState, -1);
   }
 }

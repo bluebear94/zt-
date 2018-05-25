@@ -252,10 +252,85 @@ the static verifier considers `$(C:1)` seen at the `b` (assuming left-to-right
 checking), but when the rule is actually run, `$(C:1)` could be captured
 earlier.
 
+#### Lua scripting
+
+Lua code blocks are surrounded by `$$` (two dollar signs on each side) around
+them. Funky things will happen if you happen to have that string within
+your Lua code.
+
+*Global* Lua code blocks are run once during the invocation of `ztš`. The
+syntax is `executeOnce <lua_code>`; for instance, if you want to print a
+string once in a program, insert the following:
+
+    executeOnce $$
+    print("soonoyun i lua!")
+    $$
+
+Of course, the real magic comes when you make rules fire only when a certain
+condition is met. This is the infamous Γ from UDN. Just pop a Lua code block
+right after the environment (if you have one):
+
+    a+ -> "OKITA-SAN DAISHOURI!" (~ _ ~) $$ isPrime(M.n) $$;
+
+Given a string with *n* `a`s (and nothing else), this rule replaces it with
+`OKITA-SAN DAISHOURI!` if *n* is prime (given a suitable definition of
+`isPrime`, of course). Otherwise, the substitution is not done:
+
+    aaaaaaa -> OKITA-SAN DAISHOURI!
+    aaaaaaaa -> aaaaaaaa
+
+The following variables are available inside Γ-expressions:
+
+* `W`: the word as it is before the rule is applied. A list of *phoneme spec*
+  objects, one-indexed. (I personally dislike one-indexing, but that's what
+  Lua does.)
+* `M`: a table with the following entries:
+  * `s`: the index of the first character matched (from one).
+  * `e`: the index right after the last character matched (from one).
+    That is, `e` can range from `1` to `#W + 1`.
+  * `n`: the number of characters matched – `e - s`.
+
+`sca` is available pretty much everywhere and refers to the current SCA
+object.
+
+##### `ztš.SCA`
+
+    sca:getPhoneme(name) -- name is a string, returns a phoneme spec object
+    sca:getFeature(name) -- name is a string, returns a pair (index, feature)
+                         -- index is from zero; feature is a feature object
+    sca:getClass(name)   -- similar, but returns char class object as 2nd elem
+    sca:getFeatureByIndex(index) -- similar to the two above, but take in the
+    sca:getClassByIndex(index)   -- index and return only the relevant object
+
+##### `ztš.SCA.PhonemeSpec`
+
+    ps:getName()           -- returns the name of this phoneme spec
+    ps:getCharClass(sca)   -- takes in an SCA object, returns a char class
+    ps:getCharClassIndex() -- just returns the index
+                           -- (you can feed it into sca:getClassByIndex)
+    ps:getFeatureValue(fid, sca)
+                           -- fid is a feature index (get from sca:getFeature)
+                           -- sca is an sca object
+                           -- returns a 1-based index into the
+                           -- feature:getInstanceNames() table
+    ps:getFeatureName(fid, sca)
+                           -- similar, but actually returns the name
+
+##### `ztš.SCA.Feature`
+
+    feature:getName()          -- returns the name
+    feature:getInstanceNames() -- returns a table of instance names for
+                               -- this feature
+    feature:getDefault()       -- default instance, is an index
+    feature:isCore()           -- true if core feature
+    feature:isOrdered()        -- true if ordered feature
+
+##### `ztš.SCA.CharClass`
+
+    cc:getName() -- returns the name
+
 #### Unimplemented features
 
-* The `[<Γ>]` you love from UDN is not supported yet. I'll probably embed
-  a scripting language to support this in the future.
 * Heck, why not add looping rules and such?
 * Disjunction in constraints is not yet supported in general (e. g. it's not
   yet possible to match phonemes with, say, `pa=lb` or `ma=pl`). This can

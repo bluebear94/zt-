@@ -6,6 +6,8 @@
 #include <variant>
 #include <vector>
 
+#include <lua.hpp>
+
 #include "PHash.h"
 #include "PUnique.h"
 #include "errors.h"
@@ -142,7 +144,12 @@ namespace sca {
       const SoundChange& sc) const override;
     MString alpha, omega;
     std::vector<std::pair<MString, MString>> envs;
+    int gammaref = LUA_NOREF;
     bool inv;
+    bool setGamma(lua_State* luaState, const std::string_view& s);
+  private:
+    bool evaluate(lua_State* luaState,
+      const WString& word, size_t mstart, size_t mend) const;
   };
   struct CompoundRule : public Rule {
     std::optional<size_t> tryReplaceLTR(

@@ -10,6 +10,6 @@ namespace sca {
     int init(lua_State* l);
     // Push a pointer to an SCA on the Lua stack
     int pushSCA(lua_State* l, SCA& sca);
-    int pushPhoneme(lua_State* l, PhonemeSpec& phoneme);
+    int pushPhonemeSpec(lua_State* l, PhonemeSpec& phoneme);
   }
 }

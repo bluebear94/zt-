@@ -425,6 +425,15 @@ namespace sca {
       r->envs.clear();
       r->inv = false;
     }
+    const Token& gamma = peekToken();
+    if (gamma.is<LuaCode>()) {
+      getToken();
+      bool res = r->setGamma(sca->getLuaState(), gamma.as<LuaCode>().code);
+      if (!res) {
+        std::cerr << lua_tostring(sca->getLuaState(), -1) << "\n";
+        return std::nullopt;
+      }
+    }
     return std::move(r);
   }
   std::optional<std::unique_ptr<CompoundRule>> Parser::parseCompoundRule() {

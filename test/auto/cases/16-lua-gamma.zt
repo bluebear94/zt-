@@ -1,0 +1,28 @@
+class X = a;
+
+executeOnce $$
+function isPrime(n)
+  if n == 0 or n == 1 then return false end
+  for i = 2, math.sqrt(n) do
+    if n % i == 0 then return false end
+  end
+  return true
+end
+function isSquare(n)
+  local i = 0
+  while i * i <= n do
+    if i * i == n then return true end
+    i = i + 1
+  end
+  return false
+end
+$$
+
+# W: the word matched (list of phoneme specs)
+# M.s: the start index of the match (1-idx)
+# M.e: the end index of the match (1-idx, makes half-open interval)
+# M.n: the number of chars matched
+
+a+ -> "OKITA-SAN DAISHOURI!" (~ _ ~) $$ isPrime(M.n) $$;
+a+ -> "nobunobu" (~ _ ~) $$ isSquare(M.n) $$;
+a+ -> "._." (~ _ ~);

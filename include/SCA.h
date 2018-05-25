@@ -108,6 +108,7 @@ namespace sca {
     void addGlobalLuaCode(const LuaCode& lc);
     std::string executeGlobalLuaCode();
     std::string wStringToString(const WString& ws) const;
+    lua_State* getLuaState() const { return luaState.get(); }
   private:
     std::vector<CharClass> charClasses;
     std::vector<Feature> features;
@@ -117,7 +118,7 @@ namespace sca {
     std::vector<SoundChange> rules;
     std::unordered_multimap<
       PhonemeSpec, std::string, PSHash, PSEqual> phonemesReverse;
-    std::unique_ptr<lua_State, decltype(&lua_close)>
+    mutable std::unique_ptr<lua_State, decltype(&lua_close)>
       luaState;
     std::string globalLuaCode;
   };
