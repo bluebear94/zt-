@@ -13,6 +13,7 @@
 
 #include <lua.hpp>
 
+#include "PHash.h"
 #include "Rule.h"
 #include "Token.h"
 #include "errors.h"
@@ -42,10 +43,6 @@ namespace sca {
       const std::string& name, size_t& id) const;
   };
   using PhonemesByFeature = std::vector<std::vector<std::string>>;
-  struct PSHash {
-    size_t operator()(const PhonemeSpec& ps) const;
-    const SCA* sca;
-  };
   struct SoundChange {
     std::unique_ptr<Rule> rule;
     EvaluationOrder eo = EvaluationOrder::ltr;

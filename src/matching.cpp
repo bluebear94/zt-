@@ -10,6 +10,7 @@
 #include "SCA.h"
 
 namespace sca {
+#if 0
   static const PhonemeSpec defaultPS = {
     /* .name = */ "",
     /* .charClass = */ (size_t) -1,
@@ -28,22 +29,33 @@ namespace sca {
       }
     }, c.value);
   }
+#endif
   bool charsMatch(
-      const SCA& sca, const MChar& fr2, const MChar& fi2, MatchCapture& mc) {
-    bool llmatch = fr2.is<std::string>() && fi2.is<std::string>();
-    MChar fr = llmatch ? fr2 : decay(sca, fr2);
-    MChar fi = llmatch ? fi2 : decay(sca, fi2);
+      const SCA& sca,
+      const MChar& fr, const PhonemeSpec& fi,
+      MatchCapture& mc) {
+    //bool llmatch = fr2.is<std::string>() && fi2.is<std::string>();
+    //MChar fr = llmatch ? fr2 : decay(sca, fr2);
+    //MChar fi = llmatch ? fi2 : decay(sca, fi2);
     return std::visit([&](const auto& arg) {
       using T = std::decay_t<decltype(arg)>;
       if constexpr (std::is_same_v<T, Space>) {
-        return fi.is<Space>();
+        return false; // spaces can't occur in words, at least not right now
       } else if constexpr (std::is_same_v<T, std::string>) {
-        return fi.isT(arg);
-      } else if constexpr (std::is_same_v<T, PhonemeSpec>) {
-        return fi.is<PhonemeSpec>() &&
-          arePhonemeSpecsEqual(sca, fi.as<PhonemeSpec>(), arg);
-      } else if constexpr (std::is_same_v<T, CharMatcher>) {
+        // Both the phoneme spec and name should be equal;
+        if (fi.name != arg) return false;
         const PhonemeSpec* ps;
+        Error res = sca.getPhonemeByName(arg, ps);
+        if (!res.ok()) {
+          // Not found; accept anyway
+          // (e. g. if 'x' is not enumerated, then we want 'x' to match 'x')
+          return true;
+        }
+        return arePhonemeSpecsEqual(sca, fi, *ps);
+      } else if constexpr (std::is_same_v<T, PhonemeSpec>) {
+        return arePhonemeSpecsEqual(sca, fi, arg);
+      } else if constexpr (std::is_same_v<T, CharMatcher>) {
+        /*const PhonemeSpec* ps;
         bool owned;
         if (fi.is<std::string>()) {
           const std::string ph = fi.as<std::string>();
@@ -53,10 +65,10 @@ namespace sca {
         } else if (fi.is<PhonemeSpec>()) {
           ps = new PhonemeSpec(std::move(fi.as<PhonemeSpec>()));
           owned = true;
-        }
+        }*/
         // Get properties of fi
         // Do the classes match (or this one takes any class)?
-        if (arg.charClass != -1 && !ps->hasClass(arg.charClass))
+        if (arg.charClass != -1 && !fi.hasClass(arg.charClass))
           return false;
         // Does this phoneme satisfy our constraints?
         return std::visit([&](const auto& cons) -> bool {
@@ -66,20 +78,20 @@ namespace sca {
           if constexpr (std::is_same_v<U, std::vector<Constraint>>) {
             // Should match all constraints.
             for (const CharMatcher::Constraint& con : cons) {
-              if (!con.matches(ps->getFeatureValue(con.feature, sca), mc, sca))
+              if (!con.matches(fi.getFeatureValue(con.feature, sca), mc, sca))
                 return false;
             }
           } else {
             // Should be one of the phonemes enumerated.
             for (i = 0; i < cons.size(); ++i) {
               const PhonemeSpec& ps2 = *(cons[i]);
-              if (arePhonemeSpecsEqual(sca, *ps, ps2)) break;
+              if (arePhonemeSpecsEqual(sca, fi, ps2)) break;
             }
             if (i == cons.size()) return false;
           }
           auto itres = mc.try_emplace(
             std::pair(arg.charClass, arg.index),
-            ps, owned, i);
+            &fi, false, i);
           if (!itres.second) { // Already there; query current.
             auto it = itres.first;
             if constexpr (std::is_same_v<U, std::vector<Constraint>>) {
@@ -87,10 +99,10 @@ namespace sca {
               // feature we remember, other than the ones we tested?
               const PhonemeSpec* rememberedPS = it->second.ps;
               size_t nFeatures = std::max(
-                ps->featureValues.size(),
+                fi.featureValues.size(),
                 rememberedPS->featureValues.size());
               for (size_t i = 0; i < nFeatures; ++i) {
-                size_t myval = ps->getFeatureValue(i, sca);
+                size_t myval = fi.getFeatureValue(i, sca);
                 size_t remval = rememberedPS->getFeatureValue(i, sca);
                   for (const CharMatcher::Constraint& con : cons) {
                     if (con.feature == i) goto ignore;
@@ -115,32 +127,43 @@ namespace sca {
       }
     }, fr.value);
   }
-  MChar applyOmega(const SCA& sca, MChar&& old, const MatchCapture& mc) {
-    return std::visit([&](auto&& arg) -> MChar {
+  const PUnique<PhonemeSpec> applyOmega(
+      const SCA& sca, MChar&& old, const MatchCapture& mc) {
+    return std::visit([&](auto&& arg) -> const PUnique<PhonemeSpec> {
       using T = std::decay_t<decltype(arg)>;
       if constexpr (std::is_same_v<T, CharMatcher>) {
         auto it = mc.find(std::pair(arg.charClass, arg.index));
         assert(it != mc.end()); // this should have been validated before
         if (arg.hasConstraints()) {
-          PhonemeSpec ps(*(it->second.ps));
+          auto ps = makePOwner<PhonemeSpec>(*(it->second.ps));
           for (const CharMatcher::Constraint& con : arg.getConstraints()) {
             assert(con.c == Comparison::eq);
             assert(con.instances.size() == 1);
-            ps.setFeatureValue(con.feature, con.evaluate(0, mc, sca), sca);
+            ps->setFeatureValue(con.feature, con.evaluate(0, mc, sca), sca);
           }
-          auto phrange = sca.getPhonemesBySpec(ps);
+          auto phrange = sca.getPhonemesBySpec(*ps);
           if (phrange.first == phrange.second) {
             // Return an anonymous phoneme spec
             return ps;
           }
-          return MChar(phrange.first->second);
+          return makePObserver(phrange.first->first);
         } else {
           size_t index = it->second.index;
           assert(index != -1);
-          return MChar(arg.getEnumeration()[index]->name);
+          const auto& name = arg.getEnumeration()[index]->name;
+          const PhonemeSpec* ps;
+          Error res = sca.getPhonemeByName(name, ps);
+          assert(res.ok());
+          return makePObserver(*ps);
         }
+      } else if constexpr (std::is_same_v<T, std::string>) {
+        const PhonemeSpec* ps;
+        Error res = sca.getPhonemeByName(arg, ps);
+        assert(res.ok());
+        return makePObserver(*ps);
       } else {
-        return std::move(arg);
+        std::cerr << "applyOmega: invalid type for `old`";
+        abort();
       }
     }, old.value);
   }
