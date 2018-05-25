@@ -107,6 +107,19 @@ namespace sca {
         int d = cursor.read();
         switch (d) {
           case '(': RETURN_OP(Operator::dlb);
+          case '$': {
+            // Get characters until a `$$`
+            std::string code;
+            while (true) {
+              int d = cursor.read();
+              if (d == std::char_traits<char>::eof()) return std::nullopt;
+              if (d == '$' && code.back() == '$') break;
+              code += (char) d;
+            }
+            code.pop_back();
+            t.contents = LuaCode{std::move(code)};
+            return std::move(t);
+          }
           default: {
             cursor = temp;
             return std::nullopt;
@@ -161,6 +174,7 @@ namespace sca {
           else if (s == "class") t.contents = Operator::kwClass;
           else if (s == "NOT") t.contents = Operator::bang;
           else if (s == "ordered") t.contents = Operator::kwOrdered;
+          else if (s == "executeOnce") t.contents = Operator::kwExecuteOnce;
           else t.contents = std::move(s);
           return t;
         } else if (isdigit(c)) {

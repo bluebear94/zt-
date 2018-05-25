@@ -31,6 +31,7 @@ namespace sca {
     std::optional<Comparison> parseComparison();
     std::optional<std::string> parseString();
     std::optional<size_t> parseNumber();
+    std::optional<LuaCode> parseLuaCode();
     std::optional<std::pair<Feature, PhonemesByFeature>> parseFeature();
     std::optional<std::pair<std::string, std::vector<std::string>>>
     parseCharClass();
@@ -50,6 +51,7 @@ namespace sca {
     void parseStringNoAlt(MString& m, bool allowSpaces);
     std::optional<std::pair<size_t, size_t>> parseRepeaterInner();
     std::optional<std::pair<size_t, size_t>> parseRepeater();
+    std::optional<LuaCode> parseGlobalLuaDecl();
     void printLineColumn();
   };
 }

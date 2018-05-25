@@ -76,6 +76,11 @@ namespace sca {
       }
     }
   }
+  SCA::SCA() :
+      phonemesReverse(16, PSHash{this}, PSEqual{this}),
+      luaState(luaL_newstate(), &lua_close) {
+    luaL_openlibs(luaState.get());
+  }
   Error SCA::insertFeature(
       Feature&& f, const PhonemesByFeature& phonemesByFeature) {
     size_t oldFeatureCount = features.size();
@@ -205,29 +210,22 @@ namespace sca {
     }
     return s;
   }
-  size_t PSHash::operator()(const PhonemeSpec& ps) const {
-    size_t x = std::hash<size_t>()(ps.charClass);
-    constexpr size_t bits = CHAR_BIT * sizeof(size_t);
-    int rot = 0;
-    for (size_t i = 0; i < ps.featureValues.size(); ++i) {
-      size_t fv = ps.featureValues[i];
-      fv -= sca->getFeatureByID(i).def;
-      // use raw to avoid issues on 0
-      if (sca->getFeatureByID(i).isCore)
-        x ^= (fv << rot) | (fv >> (bits - rot));
-      rot = (rot + 1) % bits;
-    }
-    return x;
+  void SCA::addGlobalLuaCode(const LuaCode& lc) {
+    globalLuaCode += lc.code;
   }
-  bool arePhonemeSpecsEqual(
-      const SCA& sca, const PhonemeSpec& a, const PhonemeSpec& b) {
-    if (a.charClass != b.charClass) return false;
-    size_t nf = std::max(a.featureValues.size(), b.featureValues.size());
-    for (size_t i = 0; i < nf; ++i) {
-      if (!sca.getFeatureByID(i).isCore) continue;
-      if (a.getFeatureValue(i, sca) != b.getFeatureValue(i, sca))
-        return false;
-    }
-    return true;
+  std::string SCA::executeGlobalLuaCode() {
+    if (globalLuaCode.empty()) return "";
+    int stat = luaL_loadbufferx(
+      luaState.get(),
+      globalLuaCode.c_str(), globalLuaCode.size(),
+      "<global code>", "t");
+    if (stat != LUA_OK) goto rek;
+    stat = lua_pcall(luaState.get(), 0, 0, 0);
+    if (stat != LUA_OK) goto rek;
+    return "";
+    rek:
+    std::string s = lua_tostring(luaState.get(), -1);
+    lua_pop(luaState.get(), -1);
+    return s;
   }
 }

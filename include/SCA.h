@@ -11,7 +11,10 @@
 #include <variant>
 #include <vector>
 
+#include <lua.hpp>
+
 #include "Rule.h"
+#include "Token.h"
 #include "errors.h"
 
 namespace sca {
@@ -39,14 +42,6 @@ namespace sca {
       const std::string& name, size_t& id) const;
   };
   using PhonemesByFeature = std::vector<std::vector<std::string>>;
-  bool arePhonemeSpecsEqual(
-    const SCA& sca, const PhonemeSpec& a, const PhonemeSpec& b);
-  struct PSEqual {
-    size_t operator()(const PhonemeSpec& a, const PhonemeSpec& b) const {
-      return arePhonemeSpecsEqual(*sca, a, b);
-    }
-    const SCA* sca;
-  };
   struct PSHash {
     size_t operator()(const PhonemeSpec& ps) const;
     const SCA* sca;
@@ -60,7 +55,7 @@ namespace sca {
   };
   class SCA {
   public:
-    SCA() : phonemesReverse(16, PSHash{this}, PSEqual{this}) {}
+    SCA();
     [[nodiscard]] Error insertFeature(
       Feature&& f, const PhonemesByFeature& phonemesByFeature);
     [[nodiscard]] Error insertClass(
@@ -97,6 +92,8 @@ namespace sca {
     void verify(std::vector<Error>& errors) const;
     std::string apply(
       const std::string_view& st, const std::string& pos) const;
+    void addGlobalLuaCode(const LuaCode& lc);
+    std::string executeGlobalLuaCode();
   private:
     std::vector<CharClass> charClasses;
     std::vector<Feature> features;
@@ -106,6 +103,9 @@ namespace sca {
     std::vector<SoundChange> rules;
     std::unordered_multimap<
       PhonemeSpec, std::string, PSHash, PSEqual> phonemesReverse;
+    std::unique_ptr<lua_State, decltype(&lua_close)>
+      luaState;
+    std::string globalLuaCode;
   };
   void splitIntoPhonemes(
     const SCA& sca, const std::string_view s,

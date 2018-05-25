@@ -1,5 +1,6 @@
 #include "Parser.h"
 
+#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <string_view>
@@ -57,6 +58,11 @@ namespace sca {
     if (!reservePhonemes.empty()) return std::nullopt;
     const Token& t = getToken();
     return t.get<size_t>();
+  }
+  std::optional<LuaCode> Parser::parseLuaCode() {
+    if (!reservePhonemes.empty()) return std::nullopt;
+    const Token& t = getToken();
+    return t.get<LuaCode>();
   }
   #define REQUIRE(x) if (!(x).has_value()) return std::nullopt;
   #define REQUIRE_OPERATOR(x) REQUIRE(parseOperator(x))
@@ -508,18 +514,22 @@ namespace sca {
     REQUIRE_OPERATOR(Operator::semicolon)
     return std::move(sc);
   }
+  std::optional<LuaCode> Parser::parseGlobalLuaDecl() {
+    REQUIRE_OPERATOR(Operator::kwExecuteOnce);
+    return parseLuaCode();
+  }
   std::optional<Error> Parser::parseStatement(size_t& which) {
     // In case of failure, return the longest match
     size_t oldIndex = index;
     auto sc = parseSoundChange();
-    if (sc) {
+    if (sc.has_value()) {
       sca->insertSoundChange(std::move(*sc));
       return ErrorCode::ok;
     }
     size_t indexSC = index;
     index = oldIndex; // backtrack
     auto feature = parseFeature();
-    if (feature) {
+    if (feature.has_value()) {
       Error c = sca->insertFeature(
         std::move(feature->first), feature->second);
       return std::move(c);
@@ -528,22 +538,32 @@ namespace sca {
     index = oldIndex; // backtrack
     size_t ccline = l->getLine(), cccol = l->getCol(); // Can't say that name!
     auto charClass = parseCharClass();
-    if (charClass) {
+    if (charClass.has_value()) {
       Error c = sca->insertClass(
         std::move(charClass->first), charClass->second,
         ccline, cccol);
       return std::move(c);
     }
     size_t indexCC = index;
-    size_t farthest = std::max(indexSC, std::max(indexFeature, indexCC));
+    index = oldIndex; // backtrack
+    auto glDecl = parseGlobalLuaDecl();
+    if (glDecl.has_value()) {
+      sca->addGlobalLuaCode(*glDecl);
+      return ErrorCode::ok;
+    }
+    size_t indexGLC = index;
+    size_t farthest = std::max({indexSC, indexFeature, indexCC, indexGLC});
+    // std::max(indexSC, std::max(indexFeature, indexCC));
     if (farthest == indexSC) which = 0;
     else if (farthest == indexFeature) which = 1;
-    else which = 2;
+    else if (farthest == indexCC) which = 2;
+    else which = 3;
     index = farthest;
     return std::nullopt;
   }
   static const char* things[] = {
-    "sound change", "feature definition", "character class definition"
+    "sound change", "feature definition", "character class definition",
+    "global Lua code",
   };
   bool Parser::parse() {
     bool ok = true;

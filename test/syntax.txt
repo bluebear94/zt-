@@ -2,7 +2,7 @@ Syntax:
 
 comments start with '#'
 
-statement := sound_change | feature_def | class_def
+statement := sound_change | feature_def | class_def | global_exec
 
 sound_change := rule ['/' option+] [: pos+] ';'
 
@@ -50,3 +50,5 @@ feature_def := 'feature' feature_name ['*'] ['ordered'] '{' feature_body* '}'
 feature_body := feature_instance ':' phoneme+ ';'
 
 class_def := 'class' class '=' phoneme+ ';'
+
+global_exec := 'executeOnce' lua_code

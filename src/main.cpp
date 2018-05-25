@@ -182,6 +182,11 @@ int main(int argc, char** argv) {
     sca::printError(e);
   if (!errors.empty()) return 1;
   mysca.reversePhonemeMap();
+  std::string err = mysca.executeGlobalLuaCode();
+  if (!err.empty()) {
+    std::cerr << err;
+    return 1;
+  }
   std::istream* wfh = (c.words != nullptr) ?
     new std::fstream(c.words) : &(std::cin);
   std::string line;

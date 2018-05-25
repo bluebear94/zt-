@@ -10,7 +10,8 @@
             },
             "includePath": [
                 "${workspaceFolder}",
-                "${workspaceFolder}/include"
+                "${workspaceFolder}/include",
+                "/usr/include/lua5.3"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",

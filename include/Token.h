@@ -38,6 +38,10 @@ namespace sca {
     kwFeature,
     kwClass,
     kwOrdered,
+    kwExecuteOnce,
+  };
+  struct LuaCode {
+    std::string code;
   };
   struct Token {
     Token() : contents(EndOfFile()) {}
@@ -53,7 +57,7 @@ namespace sca {
     bool isOperator(Operator op) const {
       return is<Operator>() && as<Operator>() == op;
     }
-    std::variant<EndOfFile, Operator, std::string, size_t> contents;
+    std::variant<EndOfFile, Operator, std::string, size_t, LuaCode> contents;
     size_t line, col;
   };
 }

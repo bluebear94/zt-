@@ -1,0 +1,5 @@
+# Lua code:
+
+executeOnce $$
+io.write("soonoyun i lua!")
+$$

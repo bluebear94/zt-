@@ -11,6 +11,9 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 FIND_PACKAGE(Boost REQUIRED COMPONENTS filesystem system)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
+FIND_PACKAGE(Lua REQUIRED)
+INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
+
 ## ===============================================
 
 INCLUDE_DIRECTORIES(include/)
@@ -24,13 +27,14 @@ SET(SOURCES
   src/matching.cpp
   src/Rule.cpp
   src/verify_rule.cpp
+  src/PHash.cpp
 )
 
 ADD_EXECUTABLE(sca_e_kozet ${SOURCES})
 SET(CMAKE_CXX_FLAGS
   "${CMAKE_CXX_FLAGS} --std=c++17 -Wall -Werror -pedantic -fno-exceptions -fno-rtti")
 TARGET_LINK_LIBRARIES(sca_e_kozet
-  ${Boost_LIBRARIES}
+  ${Boost_LIBRARIES} ${LUA_LIBRARIES}
 )
 
 # This works only with in-source builds. Sorry.
