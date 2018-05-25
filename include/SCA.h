@@ -13,6 +13,7 @@
 
 #include <lua.hpp>
 
+#include "PHash.h"
 #include "Rule.h"
 #include "Token.h"
 #include "errors.h"
@@ -42,16 +43,12 @@ namespace sca {
       const std::string& name, size_t& id) const;
   };
   using PhonemesByFeature = std::vector<std::vector<std::string>>;
-  struct PSHash {
-    size_t operator()(const PhonemeSpec& ps) const;
-    const SCA* sca;
-  };
   struct SoundChange {
     std::unique_ptr<Rule> rule;
     EvaluationOrder eo = EvaluationOrder::ltr;
     Behaviour beh = Behaviour::once;
     std::unordered_set<std::string> poses;
-    void apply(const SCA& sca, MString& st, const std::string& pos) const;
+    void apply(const SCA& sca, WString& st, const std::string& pos) const;
   };
   class SCA {
   public:
@@ -110,6 +107,7 @@ namespace sca {
       const std::string_view& st, const std::string& pos) const;
     void addGlobalLuaCode(const LuaCode& lc);
     std::string executeGlobalLuaCode();
+    std::string wStringToString(const WString& ws) const;
   private:
     std::vector<CharClass> charClasses;
     std::vector<Feature> features;

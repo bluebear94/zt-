@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "PHash.h"
+#include "PUnique.h"
 #include "errors.h"
 
 namespace sca {
@@ -115,13 +116,16 @@ namespace sca {
   };
   using MSI = typename MString::iterator;
   using MSRI = typename MString::reverse_iterator;
+  using MSCI = typename MString::const_iterator;
+  using MSRCI = typename MString::const_reverse_iterator;
+  using WString = std::vector<PUnique<const PhonemeSpec>>;
   class Rule {
   public:
     virtual ~Rule() {};
     virtual std::optional<size_t> tryReplaceLTR(
-      const SCA& sca, MString& str, size_t start) const = 0;
+      const SCA& sca, WString& str, size_t start) const = 0;
     virtual std::optional<size_t> tryReplaceRTL(
-      const SCA& sca, MString& str, size_t start) const = 0;
+      const SCA& sca, WString& str, size_t start) const = 0;
     virtual void verify(
       std::vector<Error>& errors, const SCA& sca, const SoundChange& sc) const
       = 0;
@@ -129,9 +133,9 @@ namespace sca {
   };
   struct SimpleRule : public Rule {
     std::optional<size_t> tryReplaceLTR(
-      const SCA& sca, MString& str, size_t start) const override;
+      const SCA& sca, WString& str, size_t start) const override;
     std::optional<size_t> tryReplaceRTL(
-      const SCA& sca, MString& str, size_t start) const override;
+      const SCA& sca, WString& str, size_t start) const override;
     void verify(
       std::vector<Error>& errors,
       const SCA& sca,
@@ -142,9 +146,9 @@ namespace sca {
   };
   struct CompoundRule : public Rule {
     std::optional<size_t> tryReplaceLTR(
-      const SCA& sca, MString& str, size_t start) const override;
+      const SCA& sca, WString& str, size_t start) const override;
     std::optional<size_t> tryReplaceRTL(
-      const SCA& sca, MString& str, size_t start) const override;
+      const SCA& sca, WString& str, size_t start) const override;
     void verify(
       std::vector<Error>& errors,
       const SCA& sca,

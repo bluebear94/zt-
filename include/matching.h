@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "PUnique.h"
 #include "Rule.h"
 #include "SCA.h"
 
@@ -34,6 +35,7 @@ namespace sca {
     size_t index;
   };
   bool charsMatch(
-    const SCA& sca, const MChar& fr, const MChar& fi, MatchCapture& mc);
-  MChar applyOmega(const SCA& sca, MChar&& old, const MatchCapture& mc);
+    const SCA& sca, const MChar& fr, const PhonemeSpec& fi, MatchCapture& mc);
+  PUnique<const PhonemeSpec> applyOmega(
+    const SCA& sca, const MChar& old, const MatchCapture& mc);
 }
