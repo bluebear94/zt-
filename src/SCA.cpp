@@ -87,23 +87,23 @@ namespace sca {
   void SoundChange::apply(
       const SCA& sca, WString& st, const std::string& pos) const {
     if (!poses.empty() && poses.count(pos) == 0) return;
-    if (eo == EvaluationOrder::ltr) {
+    if (opt.eo == EvaluationOrder::ltr) {
       size_t i = 0;
       // `<=` is intentional. We allow matching one character past the end
       // to allow epenthesis rules such as the following:
       // -> i (t _ ~);
       while (i <= st.size()) {
         auto res = rule->tryReplaceLTR(sca, st, i);
-        if (res.has_value() && beh == Behaviour::once) break;
-        if (beh == Behaviour::loopnsi && res.has_value()) i += *res;
+        if (res.has_value() && opt.beh == Behaviour::once) break;
+        if (opt.beh == Behaviour::loopnsi && res.has_value()) i += *res;
         else ++i;
       }
     } else {
       size_t i = 0;
       while (i <= st.size()) {
         auto res = rule->tryReplaceRTL(sca, st, i);
-        if (res.has_value() && beh == Behaviour::once) break;
-        if (beh == Behaviour::loopnsi && res.has_value()) i += *res;
+        if (res.has_value() && opt.beh == Behaviour::once) break;
+        if (opt.beh == Behaviour::loopnsi && res.has_value()) i += *res;
         else ++i;
       }
     }

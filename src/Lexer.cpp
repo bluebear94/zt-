@@ -175,6 +175,7 @@ namespace sca {
           else if (s == "NOT") t.contents = Operator::bang;
           else if (s == "ordered") t.contents = Operator::kwOrdered;
           else if (s == "executeOnce") t.contents = Operator::kwExecuteOnce;
+          else if (s == "setOptions") t.contents = Operator::kwSetOptions;
           else t.contents = std::move(s);
           return t;
         } else if (isdigit(c)) {

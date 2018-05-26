@@ -39,6 +39,7 @@ namespace sca {
     kwClass,
     kwOrdered,
     kwExecuteOnce,
+    kwSetOptions,
   };
   struct LuaCode {
     std::string code;

@@ -87,7 +87,7 @@ A *string literal* is:
 
 * a series of bytes that are either letters in ASCII or non-ASCII bytes
   (thereby allowing Unicode characters to be put in such a place), other than
-  the keywords `feature`, `class`, `NOT` or `ordered`
+  the keywords `feature`, `class`, `NOT`, `ordered`, `executeOnce` or `setOptions`
 * a series of characters other than `\` or `"`, or the escape sequences
   `\\`, `\"` or `\n` (meaning what you expect them to mean), surrounded by
   double quotes
@@ -223,6 +223,8 @@ semicolon:
 * `once` (default): Replace only once.
 * `loopnsi`: Replace as many times as possible, without intersecting matches.
 * `loopsi`: Replace as many times as possible, with intersecting matches.
+
+You can also change the default options using `setOptions <option-name+>;`.
 
 `: <pos+>` allows you to specify which parts of speech to perform this rule
 on. Only words with one of the part-of-speech declarations listed will be

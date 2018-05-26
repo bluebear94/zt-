@@ -1,0 +1,10 @@
+class X = a b c d e f;
+
+setOptions loopnsi;
+a -> b;
+
+setOptions once;
+c -> d;
+
+setOptions rtl;
+e -> f;

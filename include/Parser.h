@@ -25,6 +25,7 @@ namespace sca {
     size_t index = 0;
     Lexer* l;
     SCA* sca;
+    SoundChangeOptions defaultOptions;
     const Token& getToken();
     const Token& peekToken();
     std::optional<Operator> parseOperator(Operator op);
@@ -42,6 +43,7 @@ namespace sca {
     std::optional<std::unique_ptr<SimpleRule>> parseSimpleRule();
     std::optional<std::unique_ptr<CompoundRule>> parseCompoundRule();
     std::optional<std::unique_ptr<Rule>> parseRule();
+    bool parseSCOptions(SoundChangeOptions& opt);
     std::optional<SoundChange> parseSoundChange();
     bool parseCharSimple(MString& m, bool allowSpaces);
     void parseAlternation(MString& m, bool allowSpaces);
@@ -52,6 +54,7 @@ namespace sca {
     std::optional<std::pair<size_t, size_t>> parseRepeaterInner();
     std::optional<std::pair<size_t, size_t>> parseRepeater();
     std::optional<LuaCode> parseGlobalLuaDecl();
+    bool parseSoundChangeOptionChange();
     void printLineColumn();
   };
 }

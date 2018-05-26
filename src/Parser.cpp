@@ -474,34 +474,40 @@ namespace sca {
     index = std::max(farthest, index);
     return std::nullopt;
   }
+  bool Parser::parseSCOptions(SoundChangeOptions& opt) {
+    bool atLeastOne = false;
+    while (true) {
+      const Token& t = peekToken();
+      if (!t.is<std::string>()) {
+        if (!atLeastOne) return false;
+        break;
+      }
+      const std::string& s = t.as<std::string>();
+      if (s == "ltr") opt.eo = EvaluationOrder::ltr;
+      else if (s == "rtl") opt.eo = EvaluationOrder::rtl;
+      else if (s == "once") opt.beh = Behaviour::once;
+      else if (s == "loopnsi") opt.beh = Behaviour::loopnsi;
+      else if (s == "loopsi") opt.beh = Behaviour::loopsi;
+      else {
+        std::cerr << s << " is not a valid option\n";
+        return false;
+      }
+      getToken();
+      atLeastOne = true;
+    }
+    return true;
+  }
   std::optional<SoundChange> Parser::parseSoundChange() {
     std::optional<std::unique_ptr<Rule>> r = parseRule();
     REQUIRE(r)
     SoundChange sc;
+    sc.opt = defaultOptions;
     sc.rule = std::move(*r);
     const Token* t = &peekToken();
     if (t->isOperator(Operator::slash)) {
       getToken();
-      bool atLeastOne = false;
-      while (true) {
-        const Token& t = peekToken();
-        if (!t.is<std::string>()) {
-          if (!atLeastOne) return std::nullopt;
-          break;
-        }
-        getToken();
-        const std::string& s = t.as<std::string>();
-        if (s == "ltr") sc.eo = EvaluationOrder::ltr;
-        else if (s == "rtl") sc.eo = EvaluationOrder::rtl;
-        else if (s == "once") sc.beh = Behaviour::once;
-        else if (s == "loopnsi") sc.beh = Behaviour::loopnsi;
-        else if (s == "loopsi") sc.beh = Behaviour::loopsi;
-        else {
-          std::cerr << s << " is not a valid option\n";
-          return std::nullopt;
-        }
-        atLeastOne = true;
-      }
+      bool succ = parseSCOptions(sc.opt);
+      if (!succ) return std::nullopt;
       t = &peekToken();
     }
     if (t->isOperator(Operator::colon)) {
@@ -526,6 +532,13 @@ namespace sca {
   std::optional<LuaCode> Parser::parseGlobalLuaDecl() {
     REQUIRE_OPERATOR(Operator::kwExecuteOnce);
     return parseLuaCode();
+  }
+  bool Parser::parseSoundChangeOptionChange() {
+    if (!parseOperator(Operator::kwSetOptions)) return false;
+    bool succ = parseSCOptions(defaultOptions);
+    if (!succ) return false;
+    if (!parseOperator(Operator::semicolon)) return false;
+    return true;
   }
   std::optional<Error> Parser::parseStatement(size_t& which) {
     // In case of failure, return the longest match
@@ -561,18 +574,25 @@ namespace sca {
       return ErrorCode::ok;
     }
     size_t indexGLC = index;
-    size_t farthest = std::max({indexSC, indexFeature, indexCC, indexGLC});
+    index = oldIndex; // backtrack
+    bool setOptionSucceeded = parseSoundChangeOptionChange();
+    if (setOptionSucceeded) {
+      return ErrorCode::ok;
+    }
+    size_t indexSCOC = index;
+    size_t farthest = std::max({indexSC, indexFeature, indexCC, indexGLC, indexSCOC});
     // std::max(indexSC, std::max(indexFeature, indexCC));
     if (farthest == indexSC) which = 0;
     else if (farthest == indexFeature) which = 1;
     else if (farthest == indexCC) which = 2;
-    else which = 3;
+    else if (farthest == indexGLC) which = 3;
+    else which = 4;
     index = farthest;
     return std::nullopt;
   }
   static const char* things[] = {
     "sound change", "feature definition", "character class definition",
-    "global Lua code",
+    "global Lua code", "sound change option setting",
   };
   bool Parser::parse() {
     bool ok = true;

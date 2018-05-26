@@ -43,10 +43,13 @@ namespace sca {
       const std::string& name, size_t& id) const;
   };
   using PhonemesByFeature = std::vector<std::vector<std::string>>;
-  struct SoundChange {
-    std::unique_ptr<Rule> rule;
+  struct SoundChangeOptions {
     EvaluationOrder eo = EvaluationOrder::ltr;
     Behaviour beh = Behaviour::once;
+  };
+  struct SoundChange {
+    std::unique_ptr<Rule> rule;
+    SoundChangeOptions opt;
     std::unordered_set<std::string> poses;
     void apply(const SCA& sca, WString& st, const std::string& pos) const;
   };

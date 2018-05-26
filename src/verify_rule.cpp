@@ -35,7 +35,7 @@ namespace sca {
     ctx.line = line;
     ctx.col = col;
     ctx.seen.emplace_back();
-    bool isrtl = sc.eo == EvaluationOrder::rtl;
+    bool isrtl = sc.opt.eo == EvaluationOrder::rtl;
     checkString(alpha, true, errors, sca, ctx, isrtl);
     for (const auto& p : envs) {
       const auto& lambda = p.first;
