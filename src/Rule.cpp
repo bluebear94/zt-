@@ -73,6 +73,8 @@ namespace sca {
     }
   }
   std::string CharMatcher::toString(const SCA& sca) const {
+    if (charClass == -1)
+      return "*:" + std::to_string(index);
     return sca.getClassByID(charClass).name + ":" + std::to_string(index);
   }
   static const char* opNames[] = {

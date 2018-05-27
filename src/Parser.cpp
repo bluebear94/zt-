@@ -217,14 +217,20 @@ namespace sca {
   std::optional<CharMatcher> Parser::parseMatcher() {
     // char_matcher := '$(' class [':' int] ['|' class_constraints] ')'
     REQUIRE_OPERATOR(Operator::dlb);
-    std::optional<std::string> cname = parseString();
-    REQUIRE(cname)
-    size_t id;
-    CharClass* cclass;
-    Error res = sca->getClassByName(*cname, id, cclass);
-    CHECK_ERROR_CODE(res)
     CharMatcher matcher;
-    matcher.charClass = id;
+    size_t oldIndex = index;
+    std::optional<std::string> cname = parseString();
+    if (cname.has_value()) {
+      size_t id;
+      CharClass* cclass;
+      Error res = sca->getClassByName(*cname, id, cclass);
+      CHECK_ERROR_CODE(res)
+      REQUIRE(cname)
+      CHECK_ERROR_CODE(res)
+      matcher.charClass = id;
+    } else if (index = oldIndex, parseOperator(Operator::star).has_value()) {
+      matcher.charClass = -1;
+    }
     std::optional<size_t> n = parseMatcherIndex();
     REQUIRE(n)
     matcher.index = *n;

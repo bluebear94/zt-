@@ -1,0 +1,4 @@
+class X = a b c d e f g;
+
+a -> b (c _);
+$(X:1/d,e) -> $(X:1/f,g);

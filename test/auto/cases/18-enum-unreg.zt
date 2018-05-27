@@ -1,0 +1,3 @@
+# Intentionally no class declaration
+
+$(*:1/a,b,c) -> $(*:1/d,e,f) / loopnsi;

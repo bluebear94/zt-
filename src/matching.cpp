@@ -85,7 +85,7 @@ namespace sca {
             // Should be one of the phonemes enumerated.
             for (i = 0; i < cons.size(); ++i) {
               const PhonemeSpec& ps2 = *(cons[i]);
-              if (arePhonemeSpecsEqual(sca, fi, ps2)) break;
+              if (arePhonemeSpecsEqual(sca, fi, ps2) && fi.name == ps2.name) break;
             }
             if (i == cons.size()) return false;
           }
