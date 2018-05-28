@@ -105,6 +105,10 @@ namespace sca {
       }
       return res.first;
     }
+    template<typename F>
+    auto forEachPhoneme(F&& cb) const {
+      for (const auto& p : phonemes) cb(p.second);
+    }
     void verify(std::vector<Error>& errors) const;
     std::string apply(
       const std::string_view& st,

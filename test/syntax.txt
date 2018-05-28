@@ -47,7 +47,9 @@ env_char := char | '~'
 
 feature_def := 'feature' feature_name ['*'] ['ordered'] '{' feature_body* '}'
 
-feature_body := feature_instance ':' phoneme+ ';'
+feature_body := feature_instance ':' feature_entry+ ';'
+
+feature_entry := phoneme | 'feature' '(' feature_name '=' feature_instance+ ')'
 
 class_def := 'class' class '=' phoneme+ ';'
 

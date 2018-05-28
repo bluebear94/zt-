@@ -129,6 +129,11 @@ If `*` is present after a feature *instance* name, then that one is set as
 the default – that is, any phonemes not listed will take that instance. At
 most one instance can be set as the default.
 
+In addition to explicitly listing phonemes, you can also import all phonemes
+that have a certain instance of a feature:
+
+    feature(<feature-name>=<feature-instance+>)
+
 #### Sound changes:
 
     <α> -> <ω> [[!] (<λ> _ <ρ>)];

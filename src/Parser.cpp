@@ -128,10 +128,39 @@ namespace sca {
           getToken();
           if (atLeastOne) break;
           return std::nullopt;
-        } else if (t.is<EndOfFile>()) return std::nullopt;
-        std::optional<std::string> phoneme = parseString();
-        REQUIRE(phoneme)
-        pbfi.push_back(std::move(*phoneme));
+        } else if (t.is<std::string>()) {
+          std::optional<std::string> phoneme = parseString();
+          REQUIRE(phoneme)
+          pbfi.push_back(std::move(*phoneme));
+        } else if (t.isOperator(Operator::kwFeature)) {
+          getToken();
+          REQUIRE_OPERATOR(Operator::lb)
+          std::optional<std::string> fname = parseString();
+          REQUIRE(fname)
+          size_t fid; const Feature* feature;
+          Error err = sca->getFeatureByName(*fname, fid, feature);
+          CHECK_ERROR_CODE(err)
+          REQUIRE_OPERATOR(Operator::equals)
+          std::unordered_set<size_t> iids;
+          while (true) {
+            const Token& t2 = getToken();
+            if (t2.is<std::string>()) {
+              size_t iid;
+              err = feature->getFeatureInstanceByName(t2.as<std::string>(), iid);
+              CHECK_ERROR_CODE(err)
+              iids.insert(iid);
+            } else if (!iids.empty() && t2.isOperator(Operator::rb)) {
+              break;
+            } else return std::nullopt;
+          }
+          // Now find those phonemes
+          sca->forEachPhoneme([this, fid, &iids, &pbfi](const PhonemeSpec& ps) {
+            if (iids.count(ps.getFeatureValue(fid, *sca)) != 0)
+              pbfi.push_back(ps.name);
+          });
+        } else {
+          return std::nullopt;
+        }
         atLeastOne = true;
       }
       ++i;

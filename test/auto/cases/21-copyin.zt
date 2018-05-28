@@ -1,0 +1,16 @@
+class X = a b c d e f g h i j;
+
+feature y {
+  m: a d;
+  n: e f;
+  o: c h;
+  p: b g;
+}
+
+feature z* {
+  q: feature(y=m n);
+  r: feature(y=o p);
+}
+
+$(X|z=q) -> i / loopsi;
+$(X|z=r) -> j / loopsi;
