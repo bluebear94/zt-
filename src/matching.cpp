@@ -146,7 +146,15 @@ namespace sca {
             // Return an anonymous phoneme spec
             return makeConst(std::move(ps));
           }
-          return makePObserver(phrange.first->first);
+          // Find the first phoneme that matches the name, or else return the first in
+          // the range
+          auto it = std::find_if(phrange.first, phrange.second, [&](const auto& p) {
+            return p.first.name == ps->name;
+          });
+          if (it == phrange.second)
+            return makePObserver(phrange.first->first);
+          else
+            return makePObserver(it->first);
         } else {
           size_t index = it->second.index;
           assert(index != -1);

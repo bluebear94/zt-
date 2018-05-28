@@ -26,6 +26,7 @@ const char* usage = R".(Usage:
       if omitted. If a '#' is found on a line, the substring after it
       will be passed as the part of speech, while the actual word is
       truncated before the '#'.
+  * -v, --verbose: verbose output (invocations output to stderr)
   * -f, --format <formatter=%%A%%?p[#]%%P -> %%O>: a format string for the output:
     * %%%%: a literal '%%' sign
     * %%a: the input word, without the part of speech
@@ -48,6 +49,7 @@ struct Config {
   const char* words = nullptr;
   const char* format = defaultFormat;
   const char* escapes = "\\";
+  bool verbose = false;
 };
 
 void parse(Config& c, int argc, char** argv) {
@@ -60,12 +62,14 @@ void parse(Config& c, int argc, char** argv) {
       switch (arg[1]) {
         case '-': {
           if (strcmp(arg + 2, "format") == 0) mode = 1;
-          else if (strcmp(arg + 2, "escape") == 0) mode = 1;
+          else if (strcmp(arg + 2, "escape") == 0) mode = 2;
+          else if (strcmp(arg + 2, "verbose") == 0) mode = 3;
           else mode = -1;
           break;
         }
         case 'f': mode = 1; break;
         case 'e': mode = 2; break;
+        case 'v': mode = 3; break;
         default: mode = -1; break;
       }
     }
@@ -77,6 +81,8 @@ void parse(Config& c, int argc, char** argv) {
       char* escapes = *(w++);
       if (escapes == nullptr) mode = -1;
       else c.escapes = escapes;
+    } else if (mode == 3) {
+      c.verbose = true;
     } else if (mode == 0) {
       switch (pos++) {
         case 0: c.script = arg; break;
@@ -200,7 +206,7 @@ int main(int argc, char** argv) {
       pos = line.substr(i + 1);
       line.resize(i);
     }
-    std::string output = mysca.apply(line, pos);
+    std::string output = mysca.apply(line, pos, c.verbose);
     std::cout
       << format(
         c.format, line, output, pos, c.escapes)

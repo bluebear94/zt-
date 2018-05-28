@@ -84,9 +84,10 @@ namespace sca {
     id = it - instanceNames.begin();
     return ErrorCode::ok;
   }
-  void SoundChange::apply(
+  bool SoundChange::apply(
       const SCA& sca, WString& st, const std::string& pos) const {
-    if (!poses.empty() && poses.count(pos) == 0) return;
+    bool matched = false;
+    if (!poses.empty() && poses.count(pos) == 0) return false;
     if (opt.eo == EvaluationOrder::ltr) {
       size_t i = 0;
       // `<=` is intentional. We allow matching one character past the end
@@ -94,6 +95,7 @@ namespace sca {
       // -> i (t _ ~);
       while (i <= st.size()) {
         auto res = rule->tryReplaceLTR(sca, st, i);
+        if (res.has_value()) matched = true;
         if (res.has_value() && opt.beh == Behaviour::once) break;
         if (opt.beh == Behaviour::loopnsi && res.has_value()) i += *res;
         else ++i;
@@ -102,11 +104,13 @@ namespace sca {
       size_t i = 0;
       while (i <= st.size()) {
         auto res = rule->tryReplaceRTL(sca, st, i);
+        if (res.has_value()) matched = true;
         if (res.has_value() && opt.beh == Behaviour::once) break;
         if (opt.beh == Behaviour::loopnsi && res.has_value()) i += *res;
         else ++i;
       }
     }
+    return matched;
   }
   SCA::SCA() :
       phonemesReverse(16, PSHash{this}, PSEqual{this}),
@@ -212,7 +216,9 @@ namespace sca {
     }
   }
   std::string SCA::apply(
-      const std::string_view& st, const std::string& pos) const {
+      const std::string_view& st,
+      const std::string& pos,
+      bool verbose) const {
     // Split into phonemes
     MString ms;
     splitIntoPhonemes(*this, st, ms);
@@ -233,8 +239,15 @@ namespace sca {
       }
     }
     // std::cerr << wStringToString(ws) << "\n";
+    std::string s;
     for (const SoundChange& r : rules) {
-      r.apply(*this, ws, pos);
+      if (verbose) {
+        s = wStringToString(ws);
+      }
+      bool matched = r.apply(*this, ws, pos);
+      if (verbose && matched) {
+        std::cerr << s << " -> " << wStringToString(ws) << "\n";
+      }
       // std::cerr << "-> " << wStringToString(ws) << "\n";
     }
     return wStringToString(ws);

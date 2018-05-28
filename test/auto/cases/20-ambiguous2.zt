@@ -1,0 +1,11 @@
+class X = a b c d e f g h i;
+
+feature y {
+  m: a d;
+  n: e f;
+  o: c h;
+  p: b g;
+}
+
+$(X:1) -> $(X:1) (_ i);
+$(X:1|y=m) -> $(X:1);

@@ -51,7 +51,7 @@ namespace sca {
     std::unique_ptr<Rule> rule;
     SoundChangeOptions opt;
     std::unordered_set<std::string> poses;
-    void apply(const SCA& sca, WString& st, const std::string& pos) const;
+    bool apply(const SCA& sca, WString& st, const std::string& pos) const;
   };
   class SCA {
   public:
@@ -107,7 +107,9 @@ namespace sca {
     }
     void verify(std::vector<Error>& errors) const;
     std::string apply(
-      const std::string_view& st, const std::string& pos) const;
+      const std::string_view& st,
+      const std::string& pos,
+      bool verbose = false) const;
     void addGlobalLuaCode(const LuaCode& lc);
     std::string executeGlobalLuaCode();
     std::string wStringToString(const WString& ws) const;

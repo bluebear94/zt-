@@ -105,16 +105,55 @@ feature vlat {
   y: aˡ eˡ iˡ oˡ uˡ ʉ̜ˡ;
 }
 
+setOptions loopnsi;
+
 # L-recession for nouns
 
-ʔ -> / loopnsi : n;
-$(C:1|ma=ap)l -> $(C:1) / loopnsi : n;
-$(C:1|ma=na)l -> ŋ / loopnsi : n;
-r l -> r / loopnsi : n;
-$(C:1|pa=lb)l -> $(C:1|sart=vela) / loopnsi : n;
-$(C:1|pa=ve)l -> $(C:1) / loopnsi : n;
-$(C:1|ma=lf)l -> $(C:1) / loopnsi : n;
-$(C:1|whistled=y)l -> $(C:1|ma=lf,whistled=n) / loopnsi : n;
-$(C:1|ma=af)l -> $(C:1) / loopnsi : n;
-$(C:1)l -> $(C:1|sart=phar) / loopnsi : n;
-ʔ -> k / loopnsi : v;
+ʔ -> : n;
+$(C:1|ma=ap)l -> $(C:1) : n;
+$(C:1|ma=na)l -> ŋ : n;
+r l -> r : n;
+$(C:1|pa=lb)l -> $(C:1|sart=vela) : n;
+$(C:1|pa=ve)l -> $(C:1) : n;
+$(C:1|ma=lf)l -> $(C:1) : n;
+$(C:1|whistled=y)l -> $(C:1|ma=lf,whistled=n) : n;
+$(C:1|ma=af)l -> $(C:1) : n;
+$(C:1)l -> $(C:1|sart=phar) : n;
+$(V:1/ʌ,ɯ) -> $(V:1/o,u) !(w _) : n;
+ɯ -> i : n;
+$(V:1)l -> $(V:1|vlat=y) : n;
+l -> dˤ (~ _) : n;
+
+# L-recession for verbs
+
+ʔ -> k : v;
+l$(C:1|ma=ap) -> $(C:1) : v;
+l$(C:1|ma=na) -> ŋ : v;
+lɾ -> r : v;
+l$(C:1|pa=lb) -> $(C:1|sart=vela) : v;
+l$(C:1|pa=ve) -> $(C:1) : v;
+l$(C:1|ma=lf) -> $(C:1) : v;
+l$(C:1|whistled=y) -> $(C:1|ma=lf, whistled=n) : v;
+l$(C:1|ma=af) -> $(C:1) : v;
+l$(C:1) -> $(C:1|sart=phar) : v;
+l$(V:1) -> $(V:1)z : v;
+l -> t : v;
+$(V:1/ʌ,ɯ) -> $(V:1/e,i) : v;
+
+# Vocaloëxodus: /ʉ̜/
+
+jʉ̜ -> i;
+ʉ̜ -> (_ ~ || ~ _);
+ʉ̜ -> u ($(C:1|pa=lb) _);
+wu -> u;
+ʉ̜ -> o ($(C:1|pa=ve) _);
+ʉ̜ -> e ($(C:1) _);
+ʉ̜ -> ;
+ʉ̜ˡ -> ɹ;
+
+# Vowel merging
+$(V:1)$(V:1) -> $(V:1)ː;
+i$(V:1) -> j$(V:1);
+u$(V:1) -> w$(V:1);
+
+# Lateral rotation: ???
