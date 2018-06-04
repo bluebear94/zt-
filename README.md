@@ -1,5 +1,7 @@
 ## ztš
 
+**ALERT:** Moved to [GitLab](https://gitlab.com/Kyarei/zt-).
+
 > Modern Rymakonian for Zašta, the Luminary of [name unkown]. He was not
 > the only one, but he was the first.
 
